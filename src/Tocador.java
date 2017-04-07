@@ -1,7 +1,4 @@
-package tocadorics;
-
 import java.io.File;
-import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
