@@ -4,6 +4,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 
 /**
@@ -54,6 +56,8 @@ public class TelaInicial extends JFrame {
         configuraSeletorSoundfont();
         configuraInformacoes();
 
+        (new RastreadorDeProgresso(this)).start();
+
         setVisible(true);
     }
 
@@ -92,6 +96,34 @@ public class TelaInicial extends JFrame {
         pbProgresso = new JProgressBar();
         pbProgresso.setBounds(33, 470, 301, 14);
         pbProgresso.setMinimum(0);
+        pbProgresso.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                long posMicrossegundos = e.getX() * pbProgresso.getMaximum() / pbProgresso.getWidth() * 1000000;
+                tocador.setPosicaoMicrosegundos(posMicrossegundos);
+                atualizaProgresso();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
         lbProgresso = new JLabel("hh:mm:ss");
         lbProgresso.setBounds(109, 495, 166, 14);
 
@@ -107,7 +139,7 @@ public class TelaInicial extends JFrame {
         slVolume.setMinimum(0);
         slVolume.setMajorTickSpacing(10);
         slVolume.setMinorTickSpacing(1);
-        slVolume.setValue(64);
+        slVolume.setValue(127);
         slVolume.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -117,7 +149,7 @@ public class TelaInicial extends JFrame {
             }
         });
 
-        lbVolume = new JLabel("50%");
+        lbVolume = new JLabel("100%");
         lbVolume.setBounds(344, 418, 30, 41);
 
         getContentPane().add(slVolume);
@@ -132,13 +164,11 @@ public class TelaInicial extends JFrame {
         btnCarregarArquivo = new JButton("...");
         btnCarregarArquivo.setBounds(310, 10, 64, 21);
         btnCarregarArquivo.setToolTipText("Carregar arquivo MIDI");
-        btnCarregarArquivo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        btnCarregarArquivo.addActionListener(e -> {
                 String extensoes[] = new String[2];
                 extensoes[0] = ".mid";
                 extensoes[1] = ".midi";
-                abrirArquivo(".", extensoes, "Arquivos MIDI (*.mid, *.midi)", arquivoMidi);
+                abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)", arquivoMidi);
                 if (arquivoMidi[0] != null) {
                     if (tocador.carregaArquivo(arquivoMidi[0])) {
                         tfNomeArquivo.setText(arquivoMidi[0].toString());
@@ -153,7 +183,6 @@ public class TelaInicial extends JFrame {
                         arquivoMidi[0] = null;
                     }
                 }
-            }
         });
         getContentPane().add(tfNomeArquivo);
         getContentPane().add(btnCarregarArquivo);
@@ -167,9 +196,7 @@ public class TelaInicial extends JFrame {
         btnCarregarSoundfont = new JButton("...");
         btnCarregarSoundfont.setBounds(310, 40, 64, 21);
         btnCarregarSoundfont.setToolTipText("Carregar arquivo SoundFont");
-        btnCarregarSoundfont.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        btnCarregarSoundfont.addActionListener(e ->  {
                 String extensoes[] = new String[1];
                 extensoes[0] = ".sf2";
                 abrirArquivo(".", extensoes, "Arquivos soundfont(*.sf2)", arquivoSoundfont);
@@ -181,7 +208,6 @@ public class TelaInicial extends JFrame {
                         arquivoSoundfont[0] = null;
                     }
                 }
-            }
         });
 
         getContentPane().add(tfNomeSoundfont);
@@ -242,9 +268,12 @@ public class TelaInicial extends JFrame {
     }
 
     public void atualizaProgresso() {
-        long posicaoSegundos = tocador.obtemPosicaoMicrosegundos() / 1000000;
-        pbProgresso.setValue((int) posicaoSegundos);
-        lbProgresso.setText(divideTempo(posicaoSegundos));
+        long posicaoMicrosegundos = tocador.obtemPosicaoMicrosegundos();
+        if (posicaoMicrosegundos != -1) {
+            long posicaoSegundos = posicaoMicrosegundos / 1000000;
+            pbProgresso.setValue((int) posicaoSegundos);
+            lbProgresso.setText(divideTempo(posicaoSegundos));
+        }
     }
 
     public String divideTempo(long segundos) {
@@ -259,6 +288,26 @@ public class TelaInicial extends JFrame {
         btnPausa.setEnabled(reproduzindo);
         btnTocar.setEnabled(!reproduzindo);
         btnParar.setEnabled(true);
+    }
+
+    private class RastreadorDeProgresso extends Thread {
+        private TelaInicial tela;
+
+        protected RastreadorDeProgresso(TelaInicial tela) {
+            this.tela = tela;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    Thread.sleep(1000);
+                    tela.atualizaProgresso();
+                }
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
