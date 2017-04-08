@@ -18,7 +18,7 @@ public class TelaInicial extends JFrame {
 
     public File arquivoMidi[];
     public File arquivoSoundfont[];
-    public Sequence sequencia;
+    public Tocador tocador;
 
     /* Controle de fluxo */
     private JButton btnPausa;
@@ -42,11 +42,12 @@ public class TelaInicial extends JFrame {
     public TelaInicial() {
         super();
 
+        tocador = new Tocador();
         arquivoMidi = new File[1];
         arquivoSoundfont = new File[1];
 
         setBounds(100, 100, 400, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
         getContentPane().setLayout(null);
 
@@ -124,13 +125,12 @@ public class TelaInicial extends JFrame {
                 extensoes[1] = ".midi";
                 abrirArquivo(".", extensoes, "Arquivos MIDI (*.mid, *.midi)", arquivoMidi);
                 if (arquivoMidi[0] != null) {
-                    tfNomeArquivo.setText(arquivoMidi[0].toString());
-                    try {
-                        sequencia = MidiSystem.getSequence(arquivoMidi[0]);
-                    } catch (IOException exc) {
-                        JOptionPane.showMessageDialog(null, exc.getMessage());
-                    } catch (InvalidMidiDataException exc) {
-                        JOptionPane.showMessageDialog(null, "Arquivo MIDI inválido.");
+                    if (tocador.carregaArquivo(arquivoMidi[0])) {
+                        tfNomeArquivo.setText(arquivoMidi[0].toString());
+                        atualizaInformacoes();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
+                        arquivoMidi[0] = null;
                     }
                 }
             }
@@ -165,6 +165,7 @@ public class TelaInicial extends JFrame {
     private void configuraInformacoes() {
         taInformacoes = new JTextArea();
         taInformacoes.setBounds(33, 135, 301, 272);
+        taInformacoes.setEditable(false);
 
         getContentPane().add(taInformacoes);
     }
@@ -192,6 +193,34 @@ public class TelaInicial extends JFrame {
         });
         seletor.showOpenDialog(this);
         arquivo[0] = seletor.getSelectedFile();
+    }
+
+    public void atualizaInformacoes() {
+        StringBuilder sb = new StringBuilder();
+        long duracao = tocador.obtemDuracaoSegundos();
+        long resolucao = tocador.obtemResolucao();
+        double duracao_seminima = tocador.obtemDuracaoSeminima();
+        long total_tiques = tocador.obtemTotalTiques();
+        double duracao_tique = tocador.obtemDuracaoTique();
+        double bpm = 60.0 / duracao_seminima;
+        long total_seminimas = tocador.obtemTotalSeminimas();
+        sb.append("Nome do arquivo: ").append(arquivoMidi[0].getName())
+                .append("\nResolução: ").append(resolucao).append(" tiques por semínima")
+                .append("\nDuração: ").append(divideTempo(duracao))
+                .append("\nTotal de tiques: ").append(total_tiques)
+                .append("\nDuração de tique: ").append(duracao_tique).append(" s")
+                .append("\nDuração da semínima: ").append(duracao_seminima).append(" s")
+                .append("\nNúmero de semínimas: ").append(total_seminimas)
+                .append(String.format("\nAndamento: %.2f bpm", bpm));
+        taInformacoes.setText(sb.toString());
+    }
+
+    public String divideTempo(long segundos) {
+        byte horas = (byte) (segundos / 3600);
+        segundos -= horas * 3600;
+        byte minutos = (byte) (segundos / 60);
+        segundos -= minutos * 60;
+        return String.format("%02d:%02d:%02d", horas, minutos, segundos);
     }
 
     public void reproduzOuPausa(boolean reproduzindo) {
