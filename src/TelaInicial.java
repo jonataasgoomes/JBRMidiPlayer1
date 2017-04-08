@@ -1,6 +1,3 @@
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Sequence;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -8,7 +5,6 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by Ricardo on 07/04/2017.
@@ -63,8 +59,25 @@ public class TelaInicial extends JFrame {
 
     private void configuraControleDeFluxo() {
         btnPausa = new JButton("Pausar");
+        btnPausa.addActionListener(e -> {
+            tocador.pausar();
+            reproduzOuPausa(false);
+        });
+        btnPausa.setEnabled(false);
         btnTocar = new JButton("Reproduzir");
+        btnTocar.addActionListener(e -> {
+            tocador.tocar();
+            reproduzOuPausa(true);
+        });
+        btnTocar.setEnabled(false);
         btnParar = new JButton("Parar");
+        btnParar.addActionListener(e -> {
+            tocador.parar();
+            btnParar.setEnabled(false);
+            btnPausa.setEnabled(false);
+            btnTocar.setEnabled(true);
+        });
+        btnParar.setEnabled(false);
 
         btnPausa.setBounds(10, 527, 89, 23);
         btnTocar.setBounds(109, 527, 166, 23);
@@ -78,6 +91,7 @@ public class TelaInicial extends JFrame {
     private void configuraProgresso() {
         pbProgresso = new JProgressBar();
         pbProgresso.setBounds(33, 470, 301, 14);
+        pbProgresso.setMinimum(0);
         lbProgresso = new JLabel("hh:mm:ss");
         lbProgresso.setBounds(109, 495, 166, 14);
 
@@ -99,6 +113,7 @@ public class TelaInicial extends JFrame {
             public void stateChanged(ChangeEvent e) {
                 int volume = (int) Math.round((slVolume.getValue() * 100.0) / 127.0);
                 lbVolume.setText(volume + "%");
+                tocador.controlaVolume(slVolume.getValue());
             }
         });
 
@@ -127,7 +142,12 @@ public class TelaInicial extends JFrame {
                 if (arquivoMidi[0] != null) {
                     if (tocador.carregaArquivo(arquivoMidi[0])) {
                         tfNomeArquivo.setText(arquivoMidi[0].toString());
+                        btnParar.setEnabled(false);
+                        btnPausa.setEnabled(false);
+                        btnTocar.setEnabled(true);
                         atualizaInformacoes();
+                        pbProgresso.setMaximum((int) tocador.obtemDuracaoSegundos());
+                        atualizaProgresso();
                     } else {
                         JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
                         arquivoMidi[0] = null;
@@ -153,8 +173,14 @@ public class TelaInicial extends JFrame {
                 String extensoes[] = new String[1];
                 extensoes[0] = ".sf2";
                 abrirArquivo(".", extensoes, "Arquivos soundfont(*.sf2)", arquivoSoundfont);
-                if (arquivoSoundfont[0] != null)
-                    tfNomeSoundfont.setText(arquivoSoundfont[0].toString());
+                if (arquivoSoundfont[0] != null) {
+                    if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont[0])) {
+                        tfNomeSoundfont.setText(arquivoSoundfont[0].toString());
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Erro no arquivo soundfont.");
+                        arquivoSoundfont[0] = null;
+                    }
+                }
             }
         });
 
@@ -215,6 +241,12 @@ public class TelaInicial extends JFrame {
         taInformacoes.setText(sb.toString());
     }
 
+    public void atualizaProgresso() {
+        long posicaoSegundos = tocador.obtemPosicaoMicrosegundos() / 1000000;
+        pbProgresso.setValue((int) posicaoSegundos);
+        lbProgresso.setText(divideTempo(posicaoSegundos));
+    }
+
     public String divideTempo(long segundos) {
         byte horas = (byte) (segundos / 3600);
         segundos -= horas * 3600;
@@ -223,10 +255,10 @@ public class TelaInicial extends JFrame {
         return String.format("%02d:%02d:%02d", horas, minutos, segundos);
     }
 
-    public void reproduzOuPausa(boolean reproduzindo) {
+    private void reproduzOuPausa(boolean reproduzindo) {
         btnPausa.setEnabled(reproduzindo);
         btnTocar.setEnabled(!reproduzindo);
+        btnParar.setEnabled(true);
     }
-
 
 }
