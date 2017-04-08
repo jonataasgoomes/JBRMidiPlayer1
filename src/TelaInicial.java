@@ -2,8 +2,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -199,7 +197,7 @@ public class TelaInicial extends JFrame {
         btnCarregarSoundfont.addActionListener(e ->  {
                 String extensoes[] = new String[1];
                 extensoes[0] = ".sf2";
-                abrirArquivo(".", extensoes, "Arquivos soundfont(*.sf2)", arquivoSoundfont);
+                abrirArquivo("./soundfonts", extensoes, "Arquivos soundfont(*.sf2)", arquivoSoundfont);
                 if (arquivoSoundfont[0] != null) {
                     if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont[0])) {
                         tfNomeSoundfont.setText(arquivoSoundfont[0].toString());
