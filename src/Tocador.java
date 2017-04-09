@@ -16,7 +16,7 @@ import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Track;
 
 public class Tocador {
-    
+
     private Soundbank bancoDeInstrumentos = null;
     private Synthesizer sintetizador = null;
     private Sequencer sequenciador = null;
@@ -116,9 +116,7 @@ public class Tocador {
             return sequencia.getMicrosecondLength() / 1000000.0d;
         }
         
-        double fator = bpmBase / (double)velocidadeAtual;
-        
-        return obtemDuracaoNormalSegundos() * fator;
+        return obtemDuracaoNormalSegundos() / velocidadeAtual;
     }
     
     // Retorna a resolução da música carregada.
