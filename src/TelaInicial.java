@@ -1,9 +1,6 @@
-import java.awt.Image;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -146,7 +143,7 @@ public class TelaInicial extends JFrame {
         getContentPane().add(btnTocar);
         getContentPane().add(btnParar);
     }
-
+    
     private void configuraProgresso() {
         pbProgresso = new JProgressBar();
         pbProgresso.setBounds(33, 470, 301, 14);
@@ -154,7 +151,6 @@ public class TelaInicial extends JFrame {
         pbProgresso.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                System.out.println(e.getX());
                 long posMicrossegundos = e.getX() * pbProgresso.getMaximum() / pbProgresso.getWidth() * 1000000;
                 tocador.setPosicaoMicrosegundos(posMicrossegundos);
                 atualizaProgresso();
@@ -366,5 +362,5 @@ public class TelaInicial extends JFrame {
         btnTocar.setEnabled(!reproduzindo);
         btnParar.setEnabled(true);
     }
-
+    
 }

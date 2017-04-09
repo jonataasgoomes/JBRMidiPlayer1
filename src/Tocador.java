@@ -17,62 +17,65 @@ import javax.sound.midi.Track;
 
 public class Tocador {
     
-    private class MidiEventoTrilha {
-        
-        public MidiEvent evento;
-        public int trilhaId;
-        public int canal;
-        public int valor;
-        
-        MidiEventoTrilha (MidiEvent evento, int trilhaId) {
-            
-            this.trilhaId = trilhaId;
-            this.evento = evento;
-            
-            byte[] bytes = evento.getMessage().getMessage();
-            int length = evento.getMessage().getLength();
-            int status = evento.getMessage().getStatus();
-            
-            if (length == 6 && status == 0xFF && bytes[1] == 0x51) { // Meta Mensagem - SetTempo
-                valor = (int)(bytes[3] & 0xFF) * 65536;
-                valor += (int)(bytes[4] & 0xFF) * 256;
-                valor += (int)(bytes[5] & 0xFF);
-            } else if (length == 3 && status >= 0xB0 &&
-                       status <= 0xBF && bytes[1] == 0x07) { // Control Change - Volume
-                canal = status - 0xB0;
-                valor = (int)(bytes[2] & 0xFF);
-            }
-            
-        }
-    }
-    
     private Soundbank bancoDeInstrumentos = null;
     private Synthesizer sintetizador = null;
     private Sequencer sequenciador = null;
     private Receiver receptor = null;
+    // String que guarda qualquer falha ao instanciar a classe
+    // Tocador. Esse valor deve ser verificado antes de utilizar
+    // outros métodos da classe, pois se a classe não foi
+    // inicializada corretamente, seu funcionamento não pode
+    // ser garantido.
     private String problemaAoInstanciar = null;
     
     private List<MidiEvent> eventosMidiOriginais = new ArrayList<>();
     private List<MidiEventoTrilha> eventosMidiVolume = new ArrayList<>();
     private List<MidiEventoTrilha> eventosMidiBPM = new ArrayList<>();
     private List<MidiEvent> eventosMidiBPMRemoviveis = new ArrayList<>();
+    
+    // Valores iniciais de volume/BPM de uma música.
+    // Quando uma música é carregada, o primeiro evento Midi
+    // de mudança de volume define o volume "base" da música
+    // e o primeiro evento Midi de mudança de BPM define
+    // o BPM "base" da música.
     private int volumeBase = -1;
     private int bpmBase = -1;
     
+    // Valores que podem ser modificados pelo usuário e
+    // são constantes ao Tocador.
+    // Valor do volume (de 0 até 1).
     private float volumeAtual = -1.0f;
-    private int bpmAtual = -1;
+    // Valor da velocidade de "playback". Um valor "X" maior do que 1
+    // faz a música ser acelerada. Um valor menor do que 1 desacelera
+    // a música.
+    private float velocidadeAtual = -1; 
     
+    // Quantos segundos a música dura. Esse valor é alterado
+    // sempre que uma sequência (música) novoa é carregada.
+    // Esse valor é guardado, pois ao alterar o andamento (BPM)
+    // da música, a sua duração é pode se tornar menor ou maior.
+    // Esse campo guarda a duração original da música.
     private double duracaoNormal;
     
-    private int mudarBpmAoTocar = -1;
+    // Esse valor guarda mudanças feitas à velocidade enquanto
+    // a música está pausada. A alteração de velocidade enquanto
+    // a música está pausada causa comportamentos imprevisíveis,
+    // porém ao dar "play" na música, a velocidade pode ser alterado de
+    // acordo com o que se espera. Qualquer alteração na velocidade
+    // enquanto a música está pausada é salvada nessa variável,
+    // e quando a música for tocada novamente, sua velocidade é atualizado.
+    private float mudarVelocidadeAoTocar = -1;
     
     public Tocador() {
         try {
+            // Tenta inicializar o sintetizador e o sequenciador.
             sintetizador = MidiSystem.getSynthesizer();
             sequenciador = MidiSystem.getSequencer(false);
             sintetizador.open();
             sequenciador.open();
             if (sequenciador.isOpen() && sintetizador.isOpen()) {
+                // Se os dois inicializarem corretamente, abre o banco
+                // padrão de instrumentos, e inicializa o receptor.
                 bancoDeInstrumentos = sintetizador.getDefaultSoundbank();
                 receptor = sintetizador.getReceiver();
                 sequenciador.getTransmitter().setReceiver(receptor);
@@ -85,8 +88,20 @@ public class Tocador {
         }
     }
     
+    // Retorna a duração em segundos de um MIDI
+    // desconsiderando a velocidade de andamento.
+    // Um aúdio de 30 segundos de duração acelerado
+    // em 2x possui duração normal de 30 segundos.
+    public double obtemDuracaoNormalSegundos() {
+        return duracaoNormal;
+    }
+    
+    // Retorna a duração em segundos de um MIDI
+    // considerando a velocidade de andamento.
+    // Um aúdio de 30 segundos de duração acelerado
+    // em 2x possui duração real de 15 segundos.
     public double obtemDuracaoRealSegundos() {
-        
+
         if (sequenciador == null) {
             return -1;
         }
@@ -97,23 +112,16 @@ public class Tocador {
             return 0;
         }
         
-        if (bpmAtual == -1) {
+        if (velocidadeAtual == -1) {
             return sequencia.getMicrosecondLength() / 1000000.0d;
         }
         
-        double fator = bpmBase / (double)bpmAtual;
+        double fator = bpmBase / (double)velocidadeAtual;
         
         return obtemDuracaoNormalSegundos() * fator;
     }
     
-    // Retorna a duração em segundos de um MIDI
-    // desconsiderando a velocidade de andamento.
-    // Um aúdio de 30 segundos de duração acelerado
-    // em 2x possui duração normal de 30 segundos.
-    public double obtemDuracaoNormalSegundos() {
-        return duracaoNormal;
-    }
-    
+    // Retorna a resolução da música carregada.
     public long obtemResolucao() {
         
         if (sequenciador == null) {
@@ -129,6 +137,7 @@ public class Tocador {
         return sequencia.getResolution();
     }
     
+    // Retorna o total de tiques da música carregada.
     public long obtemTotalTiques() {
         
         if (sequenciador == null) {
@@ -144,6 +153,7 @@ public class Tocador {
         return sequencia.getTickLength();
     }
     
+    // Retorna a duração de cada tique (em segundos).
     public double obtemDuracaoTique() {
         
         if (sequenciador == null) {
@@ -162,6 +172,7 @@ public class Tocador {
         return durTique;
     }
     
+    // Retorna a duração de uma seminima em segundos.
     public double obtemDuracaoSeminima() {
         
         if (sequenciador == null) {
@@ -202,6 +213,12 @@ public class Tocador {
         return (long)(obtemDuracaoRealSegundos() / obtemDuracaoSeminima());
     }
     
+    public int obtemBPMBase() {
+        return bpmBase;
+    }
+    
+    // Retorna problemas que podem ter ocorrido durante
+    // a inicialização da classe.
     public String obtemProblemaAoInstanciar() {
         return problemaAoInstanciar;
     }
@@ -276,6 +293,10 @@ public class Tocador {
             eventosMidiVolume.clear();
             eventosMidiBPM.clear();
             
+            long tiquePrimeiroNoteOn = Long.MAX_VALUE;
+            long tiquePrimeiroVolumeChange = Long.MAX_VALUE;
+            long tiquePrimeiroBPMChange = Long.MAX_VALUE;
+            
             for (int trilhaId = 0; trilhaId < trilhas.length; trilhaId++) {
                 
                 Track trilha = trilhas[trilhaId];
@@ -288,26 +309,33 @@ public class Tocador {
                     int status = msg.getStatus();
                     if (status == 255 && bytes[1] == 0x51 && bytes[2] == 3) { // Meta Mensagem - Set Tempo
                         eventosMidiBPM.add(new MidiEventoTrilha(evento, trilhaId));
-                        if (bpmBase == -1) {
+                        if (evento.getTick() < tiquePrimeiroBPMChange) {
                             int valorTempo = (int)(bytes[5] & 0xFF);
                             valorTempo += (int)(bytes[4] & 0xFF) * 256;
                             valorTempo += (int)(bytes[3] & 0xFF) * 65536;
                             bpmBase = 60000000 / valorTempo;
+                            tiquePrimeiroBPMChange = evento.getTick();
                         }
                     } else if (status >= 0xB0 && status <= 0xBF && bytes[1] == 0x07) { // Control Change - Volume
                         eventosMidiVolume.add(new MidiEventoTrilha(evento, trilhaId));
-                        if (volumeBase == -1) {
+                        if (evento.getTick() < tiquePrimeiroVolumeChange) {
                             volumeBase = (int)(bytes[2] & 0xFF);
+                            tiquePrimeiroVolumeChange = evento.getTick();
                         }
                     } else if (status >= 0x90 && status <= 0x9F) { // Note On
-                        if (volumeBase == -1) {
-                            volumeBase = 50;
-                        }
-                        if (bpmBase == -1) {
-                            bpmBase = 100;
+                        if (evento.getTick() < tiquePrimeiroNoteOn) {
+                            tiquePrimeiroNoteOn = evento.getTick();
                         }
                     }
                 }
+            }
+            
+            if (tiquePrimeiroNoteOn < tiquePrimeiroVolumeChange) {
+                volumeBase = 100;
+            }
+            
+            if (tiquePrimeiroNoteOn < tiquePrimeiroBPMChange) {
+                bpmBase = 50;
             }
             
             for (int trilhaId = 0; trilhaId < trilhas.length; trilhaId++) {
@@ -325,20 +353,13 @@ public class Tocador {
                 }
             }
             
-            int microSegundos = 60000000 / bpmBase;
-                
-            byte[] bytes = new byte[] {
-                (byte)(microSegundos >> 16),
-                (byte)(microSegundos >> 8),
-                (byte)(microSegundos),
-            };
             
             if (volumeAtual != -1.0f) {
                 controlaVolume(volumeAtual);
             }
             
-            if (bpmAtual > -1) {
-                controlaAndamento(bpmAtual);
+            if (velocidadeAtual > -1) {
+                controlaAndamento(velocidadeAtual);
             }
             
         } catch (Exception ex) {
@@ -348,9 +369,9 @@ public class Tocador {
         return true;
     }
     
-    public void controlaAndamento(int bpm) {
+    public void controlaAndamento(float velocidade) {
         
-        if (sequenciador == null || bpm <= 0)
+        if (sequenciador == null)
             return;
         
         Sequence sequencia = sequenciador.getSequence();
@@ -359,22 +380,14 @@ public class Tocador {
             return;
         
         if (!sequenciador.isRunning()) {
-            mudarBpmAoTocar = bpm;
+            mudarVelocidadeAoTocar = velocidade;
             return;
         }
         
-        int microSegundos = 60000000 / bpm;
-        
-        byte[] bytes = new byte[3];
-
-        bytes[0] = (byte)(microSegundos >>> 16);
-        bytes[1] = (byte)(microSegundos >>> 8);
-        bytes[2] = (byte) microSegundos;
-        
+        byte[] bytes;
+        int microSegundos;
         Track[] trilhas = sequencia.getTracks();
-        float fator = (float)bpm / bpmBase;
-        
-        bpmAtual = bpm;
+        velocidadeAtual = velocidade;
         
         try {
             
@@ -388,7 +401,7 @@ public class Tocador {
                 }
                 
                 microSegundos = evento.valor;
-                microSegundos = (int)(microSegundos / fator);
+                microSegundos = (int)(microSegundos / velocidade);
                 bytes = evento.evento.getMessage().getMessage();
                 bytes[0] = (byte)(microSegundos >>> 16);
                 bytes[1] = (byte)(microSegundos >>> 8);
@@ -401,7 +414,8 @@ public class Tocador {
                 evento.evento = novoEvento;
             }
 
-            microSegundosNoMomento /= fator;
+            microSegundosNoMomento /= velocidade;
+            bytes = new byte[3];
             bytes[0] = (byte)(microSegundosNoMomento >>> 16);
             bytes[1] = (byte)(microSegundosNoMomento >>> 8);
             bytes[2] = (byte) microSegundosNoMomento;
@@ -519,9 +533,9 @@ public class Tocador {
             
             sequenciador.start();
             
-            if (mudarBpmAoTocar != -1) {
-                controlaAndamento(mudarBpmAoTocar);
-                mudarBpmAoTocar = -1;
+            if (mudarVelocidadeAoTocar != -1) {
+                controlaAndamento(mudarVelocidadeAoTocar);
+                mudarVelocidadeAoTocar = -1;
             }
         }
     }
@@ -541,14 +555,14 @@ public class Tocador {
                 return;
             }
             
-            int bpmAoRetocar = bpmAtual;
+            float velocidadeAoRetocar = velocidadeAtual;
             
-            controlaAndamento(bpmBase);
+            controlaAndamento(1.f);
             
             sequenciador.stop();
             sequenciador.setTickPosition(0);
             
-            controlaAndamento(bpmAoRetocar);
+            controlaAndamento(velocidadeAoRetocar);
             
             Track[] trilhas = sequencia.getTracks();
             
@@ -571,4 +585,32 @@ public class Tocador {
         }
     }
     
+    private class MidiEventoTrilha {
+        
+        public MidiEvent evento;
+        public int trilhaId;
+        public int canal;
+        public int valor;
+        
+        MidiEventoTrilha (MidiEvent evento, int trilhaId) {
+            
+            this.trilhaId = trilhaId;
+            this.evento = evento;
+            
+            byte[] bytes = evento.getMessage().getMessage();
+            int length = evento.getMessage().getLength();
+            int status = evento.getMessage().getStatus();
+            
+            if (length == 6 && status == 0xFF && bytes[1] == 0x51) { // Meta Mensagem - SetTempo
+                valor = (int)(bytes[3] & 0xFF) * 65536;
+                valor += (int)(bytes[4] & 0xFF) * 256;
+                valor += (int)(bytes[5] & 0xFF);
+            } else if (length == 3 && status >= 0xB0 &&
+                       status <= 0xBF && bytes[1] == 0x07) { // Control Change - Volume
+                canal = status - 0xB0;
+                valor = (int)(bytes[2] & 0xFF);
+            }
+            
+        }
+    }
 }
