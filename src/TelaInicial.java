@@ -30,6 +30,10 @@ public class TelaInicial extends JFrame {
     /* Volume */
     private JSlider slVolume;
     private JLabel lbVolume;
+    /* BPM*/
+    private JLabel lbBpm;
+    private JButton btnAumentarBpm;
+    private JButton btnDiminuirBpm;
     /* Seletor de arquivo MIDI */
     private JTextField tfNomeArquivo;
     private JButton btnCarregarArquivo;
@@ -58,6 +62,7 @@ public class TelaInicial extends JFrame {
         setIconImage(icon.getImage());
 
         configuraControleDeFluxo();
+        configuraBpm();
         configuraProgresso();
         configuraVolume();
         configuraSeletorMidi();
@@ -76,6 +81,35 @@ public class TelaInicial extends JFrame {
 
         setVisible(true);
     }
+
+
+
+
+
+    private void configuraBpm(){
+
+        lbBpm = new JLabel("BPM");
+        lbBpm.setBounds(33, 418, 66, 41);
+
+        btnAumentarBpm = new JButton("+");
+        btnAumentarBpm.setBounds(105, 418, 62, 41);
+
+        btnDiminuirBpm = new JButton("-");
+        btnDiminuirBpm.setBounds(177, 418, 62, 41);
+
+        getContentPane().add(btnAumentarBpm);
+        getContentPane().add(btnDiminuirBpm);
+        getContentPane().add(lbBpm);
+
+    }
+
+
+
+
+
+
+
+
 
     private void configuraControleDeFluxo() {
         btnPausa = new JButton("Pausar");
@@ -287,6 +321,8 @@ public class TelaInicial extends JFrame {
         }
         return null;
     }
+
+
 
     public void atualizaInformacoes() {
         StringBuilder sb = new StringBuilder();
