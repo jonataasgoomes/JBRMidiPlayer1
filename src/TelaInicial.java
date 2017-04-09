@@ -1,3 +1,4 @@
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
@@ -7,6 +8,7 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
  * Created by Ricardo on 07/04/2017.
@@ -48,7 +50,12 @@ public class TelaInicial extends JFrame {
         setBounds(100, 100, 400, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+        setTitle("Tocador JBR");
+        setLocationRelativeTo(null);
         getContentPane().setLayout(null);
+        
+        ImageIcon icon = new ImageIcon("./icon.png");
+        setIconImage(icon.getImage());
 
         configuraControleDeFluxo();
         configuraProgresso();
@@ -112,6 +119,7 @@ public class TelaInicial extends JFrame {
         pbProgresso.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                System.out.println(e.getX());
                 long posMicrossegundos = e.getX() * pbProgresso.getMaximum() / pbProgresso.getWidth() * 1000000;
                 tocador.setPosicaoMicrosegundos(posMicrossegundos);
                 atualizaProgresso();
@@ -153,19 +161,38 @@ public class TelaInicial extends JFrame {
         slVolume.setMajorTickSpacing(10);
         slVolume.setMinorTickSpacing(1);
         slVolume.setValue(256);
-        tocador.controlaVolume(1.0f);
+
         slVolume.addChangeListener((ChangeEvent e) -> {
             float pct = (float)slVolume.getValue() / slVolume.getMaximum();
-            int volume = (int)Math.round(pct * 100.0f);
-            lbVolume.setText(volume + "%");
-            tocador.controlaVolume(pct);
+            mudaVolume(pct);
         });
-
-        lbVolume = new JLabel("100%");
-        lbVolume.setBounds(344, 418, 30, 41);
+        
+        slVolume.setUI(new MetalSliderUI() {
+            @Override
+            protected void scrollDueToClickInTrack(int direction) {
+                int value = slider.getValue(); 
+                if (slider.getOrientation() == JSlider.HORIZONTAL) {
+                    value = this.valueForXPosition(slider.getMousePosition().x);
+                } else if (slider.getOrientation() == JSlider.VERTICAL) {
+                    value = this.valueForYPosition(slider.getMousePosition().y);
+                }
+                slider.setValue(value);
+            }
+        });
+        
+        lbVolume = new JLabel("");
+        lbVolume.setBounds(334, 400, 62, 41);
 
         getContentPane().add(slVolume);
         getContentPane().add(lbVolume);
+        
+        mudaVolume(1.f);
+    }
+    
+    private void mudaVolume(float valor) {
+        int volume = (int)Math.round(valor * 100.0f);
+        lbVolume.setText("Vol: " + volume + "%");
+        tocador.controlaVolume(valor);
     }
 
     private void configuraSeletorMidi() {
@@ -188,7 +215,7 @@ public class TelaInicial extends JFrame {
                         btnPausa.setEnabled(false);
                         btnTocar.setEnabled(true);
                         atualizaInformacoes();
-                        pbProgresso.setMaximum((int) tocador.obtemDuracaoNormalSegundos());
+                        pbProgresso.setMaximum((int)tocador.obtemDuracaoNormalSegundos());
                         atualizaProgresso();
                     } else {
                         JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
@@ -211,7 +238,7 @@ public class TelaInicial extends JFrame {
         btnCarregarSoundfont.addActionListener(e ->  {
                 String extensoes[] = new String[1];
                 extensoes[0] = ".sf2";
-                arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos soundfont(*.sf2)");
+                arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos SoundFont (.sf2)");
                 if (arquivoSoundfont != null) {
                     if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont)) {
                         tfNomeSoundfont.setText(arquivoSoundfont.toString());
