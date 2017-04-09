@@ -179,6 +179,14 @@ public class Tocador {
         
         return durTique * sequencia.getResolution();
     }
+
+    public int obtemAndamento() {
+        double duracaoSeminima = obtemDuracaoSeminima();
+        if (duracaoSeminima > 0) {
+            return (int) Math.round(60 / duracaoSeminima);
+        }
+        return -1;
+    }
     
     public long obtemTotalSeminimas() {
         if (sequenciador == null) {

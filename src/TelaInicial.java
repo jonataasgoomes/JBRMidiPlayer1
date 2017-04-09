@@ -82,10 +82,6 @@ public class TelaInicial extends JFrame {
         setVisible(true);
     }
 
-
-
-
-
     private void configuraBpm(){
 
         lbBpm = new JLabel("BPM");
@@ -102,14 +98,6 @@ public class TelaInicial extends JFrame {
         getContentPane().add(lbBpm);
 
     }
-
-
-
-
-
-
-
-
 
     private void configuraControleDeFluxo() {
         btnPausa = new JButton("Pausar");
@@ -322,8 +310,6 @@ public class TelaInicial extends JFrame {
         return null;
     }
 
-
-
     public void atualizaInformacoes() {
         StringBuilder sb = new StringBuilder();
         long duracao = (long)tocador.obtemDuracaoNormalSegundos();
@@ -331,7 +317,7 @@ public class TelaInicial extends JFrame {
         double duracao_seminima = tocador.obtemDuracaoSeminima();
         long total_tiques = tocador.obtemTotalTiques();
         double duracao_tique = tocador.obtemDuracaoTique();
-        double bpm = 60.0 / duracao_seminima;
+        int bpm = tocador.obtemAndamento();
         long total_seminimas = tocador.obtemTotalSeminimas();
         sb.append("Nome do arquivo: ").append(arquivoMidi.getName())
                 .append("\nResolução: ").append(resolucao).append(" tiques por semínima")
@@ -340,7 +326,7 @@ public class TelaInicial extends JFrame {
                 .append("\nDuração de tique: ").append(duracao_tique).append(" s")
                 .append("\nDuração da semínima: ").append(duracao_seminima).append(" s")
                 .append("\nNúmero de semínimas: ").append(total_seminimas)
-                .append(String.format("\nAndamento: %.2f bpm", bpm));
+                .append(String.format("\nAndamento: %d bpm", bpm));
         taInformacoes.setText(sb.toString());
     }
 
