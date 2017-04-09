@@ -48,7 +48,7 @@ public class TelaInicial extends JFrame {
     Timer rastreadorDeProgresso;
 
     public TelaInicial() {
-        
+
         super();
 
         tocador = new Tocador();
@@ -59,7 +59,7 @@ public class TelaInicial extends JFrame {
         setTitle("Tocador JBR");
         setLocationRelativeTo(null);
         getContentPane().setLayout(null);
-        
+
         ImageIcon icon = new ImageIcon("./icon.png");
         setIconImage(icon.getImage());
 
@@ -79,7 +79,7 @@ public class TelaInicial extends JFrame {
                 lbProgresso.setText(divideTempo(posicaoSegundos));
             }
         });
-        
+
         rastreadorDeProgresso.setRepeats(true);
 
         setVisible(true);
@@ -89,8 +89,8 @@ public class TelaInicial extends JFrame {
 
     private void eventosMid(){
 
-        new JButton("NOME DO BOTAO");
-        btnEventos.setBounds(310, 76, 64, 23);
+        btnEventos = new JButton("NOME");
+        btnEventos.setBounds(285, 72, 89, 23);
         getContentPane().add(btnEventos);
 
     }
@@ -98,13 +98,13 @@ public class TelaInicial extends JFrame {
     private void configuraBpm(){
 
         lbBpm = new JLabel("BPM");
-        lbBpm.setBounds(33, 418, 66, 41);
+        lbBpm.setBounds(33, 337, 66, 41);
 
         btnAumentarBpm = new JButton("+");
-        btnAumentarBpm.setBounds(105, 418, 62, 41);
+        btnAumentarBpm.setBounds(109, 337, 62, 41);
 
         btnDiminuirBpm = new JButton("-");
-        btnDiminuirBpm.setBounds(177, 418, 62, 41);
+        btnDiminuirBpm.setBounds(181, 337, 62, 41);
 
         getContentPane().add(btnAumentarBpm);
         getContentPane().add(btnDiminuirBpm);
@@ -189,7 +189,7 @@ public class TelaInicial extends JFrame {
             }
         });
         lbProgresso = new JLabel("hh:mm:ss");
-        lbProgresso.setBounds(109, 495, 166, 14);
+        lbProgresso.setBounds(168, 445, 55, 14);
 
         getContentPane().add(pbProgresso);
         getContentPane().add(lbProgresso);
@@ -209,11 +209,11 @@ public class TelaInicial extends JFrame {
             float pct = (float)slVolume.getValue() / slVolume.getMaximum();
             mudaVolume(pct);
         });
-        
+
         slVolume.setUI(new MetalSliderUI() {
             @Override
             protected void scrollDueToClickInTrack(int direction) {
-                int value = slider.getValue(); 
+                int value = slider.getValue();
                 if (slider.getOrientation() == JSlider.HORIZONTAL) {
                     value = this.valueForXPosition(slider.getMousePosition().x);
                 } else if (slider.getOrientation() == JSlider.VERTICAL) {
@@ -222,16 +222,16 @@ public class TelaInicial extends JFrame {
                 slider.setValue(value);
             }
         });
-        
+
         lbVolume = new JLabel("");
         lbVolume.setBounds(334, 400, 62, 41);
 
         getContentPane().add(slVolume);
         getContentPane().add(lbVolume);
-        
+
         mudaVolume(1.f);
     }
-    
+
     private void mudaVolume(float valor) {
         int volume = (int)Math.round(valor * 100.0f);
         lbVolume.setText("Vol: " + volume + "%");
@@ -241,30 +241,30 @@ public class TelaInicial extends JFrame {
     private void configuraSeletorMidi() {
         tfNomeArquivo = new JTextField();
         tfNomeArquivo.setEditable(false);
-        tfNomeArquivo.setBounds(10, 11, 290, 20);
+        tfNomeArquivo.setBounds(10, 11, 262, 20);
         tfNomeArquivo.setText("Arquivo MIDI");
         btnCarregarArquivo = new JButton("...");
-        btnCarregarArquivo.setBounds(310, 10, 64, 21);
+        btnCarregarArquivo.setBounds(285, 10, 89, 21);
         btnCarregarArquivo.setToolTipText("Carregar arquivo MIDI");
         btnCarregarArquivo.addActionListener(e -> {
-                String extensoes[] = new String[2];
-                extensoes[0] = ".mid";
-                extensoes[1] = ".midi";
-                arquivoMidi = abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)");
-                if (arquivoMidi != null) {
-                    if (tocador.carregaArquivo(arquivoMidi)) {
-                        tfNomeArquivo.setText(arquivoMidi.toString());
-                        btnParar.setEnabled(false);
-                        btnPausa.setEnabled(false);
-                        btnTocar.setEnabled(true);
-                        atualizaInformacoes();
-                        pbProgresso.setMaximum((int)tocador.obtemDuracaoNormalSegundos());
-                        atualizaProgresso();
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
-                        arquivoMidi = null;
-                    }
+            String extensoes[] = new String[2];
+            extensoes[0] = ".mid";
+            extensoes[1] = ".midi";
+            arquivoMidi = abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)");
+            if (arquivoMidi != null) {
+                if (tocador.carregaArquivo(arquivoMidi)) {
+                    tfNomeArquivo.setText(arquivoMidi.toString());
+                    btnParar.setEnabled(false);
+                    btnPausa.setEnabled(false);
+                    btnTocar.setEnabled(true);
+                    atualizaInformacoes();
+                    pbProgresso.setMaximum((int)tocador.obtemDuracaoNormalSegundos());
+                    atualizaProgresso();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
+                    arquivoMidi = null;
                 }
+            }
         });
         getContentPane().add(tfNomeArquivo);
         getContentPane().add(btnCarregarArquivo);
@@ -273,23 +273,23 @@ public class TelaInicial extends JFrame {
     private void configuraSeletorSoundfont() {
         tfNomeSoundfont = new JTextField();
         tfNomeSoundfont.setEditable(false);
-        tfNomeSoundfont.setBounds(10, 41, 290, 20);
+        tfNomeSoundfont.setBounds(10, 41, 262, 20);
         tfNomeSoundfont.setText("Arquivo SoundFont");
         btnCarregarSoundfont = new JButton("...");
-        btnCarregarSoundfont.setBounds(310, 40, 64, 21);
+        btnCarregarSoundfont.setBounds(285, 40, 89, 21);
         btnCarregarSoundfont.setToolTipText("Carregar arquivo SoundFont");
         btnCarregarSoundfont.addActionListener(e ->  {
-                String extensoes[] = new String[1];
-                extensoes[0] = ".sf2";
-                arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos SoundFont (.sf2)");
-                if (arquivoSoundfont != null) {
-                    if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont)) {
-                        tfNomeSoundfont.setText(arquivoSoundfont.toString());
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Erro no arquivo soundfont.");
-                        arquivoSoundfont = null;
-                    }
+            String extensoes[] = new String[1];
+            extensoes[0] = ".sf2";
+            arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos SoundFont (.sf2)");
+            if (arquivoSoundfont != null) {
+                if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont)) {
+                    tfNomeSoundfont.setText(arquivoSoundfont.toString());
+                } else {
+                    JOptionPane.showMessageDialog(null, "Erro no arquivo soundfont.");
+                    arquivoSoundfont = null;
                 }
+            }
         });
 
         getContentPane().add(tfNomeSoundfont);
@@ -298,12 +298,12 @@ public class TelaInicial extends JFrame {
 
     private void configuraInformacoes() {
         taInformacoes = new JTextArea();
-        taInformacoes.setBounds(33, 135, 301, 272);
+        taInformacoes.setBounds(33, 135, 301, 191);
         taInformacoes.setEditable(false);
 
         getContentPane().add(taInformacoes);
     }
-    
+
     private File abrirArquivo(String caminho, String extensoes[], String descricao) {
         JFileChooser seletor = new JFileChooser(caminho);
         seletor.setFileSelectionMode(JFileChooser.FILES_ONLY);
