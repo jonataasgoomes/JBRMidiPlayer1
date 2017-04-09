@@ -181,7 +181,7 @@ public class TelaInicial extends JFrame {
             }
         });
         lbProgresso = new JLabel("hh:mm:ss");
-        lbProgresso.setBounds(168, 445, 55, 14);
+        lbProgresso.setBounds(168, 485, 65, 14);
 
         getContentPane().add(pbProgresso);
         getContentPane().add(lbProgresso);
