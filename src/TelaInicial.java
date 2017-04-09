@@ -30,6 +30,8 @@ public class TelaInicial extends JFrame {
     /* Volume */
     private JSlider slVolume;
     private JLabel lbVolume;
+    /*EVENTOS*/
+    private JButton btnEventos;
     /* BPM*/
     private JLabel lbBpm;
     private JButton btnAumentarBpm;
@@ -84,7 +86,13 @@ public class TelaInicial extends JFrame {
 
 
 
+    private void EventosMid(){
 
+        new JButton("NOME DO BOTAO");
+        btnEventos.setBounds(310, 76, 64, 23);
+        getContentPane().add(btnEventos);
+        
+    }
 
     private void configuraBpm(){
 
