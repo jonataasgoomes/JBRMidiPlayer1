@@ -1,3 +1,5 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -12,9 +14,9 @@ import java.io.File;
 
 public class TelaInicial extends JFrame {
 
-    public File arquivoMidi[];
-    public File arquivoSoundfont[];
-    public Tocador tocador;
+    public File arquivoMidi = null;
+    public File arquivoSoundfont = null;
+    public Tocador tocador = null;
 
     /* Controle de fluxo */
     private JButton btnPausa;
@@ -34,13 +36,14 @@ public class TelaInicial extends JFrame {
     private JButton btnCarregarSoundfont;
     /* Informacoes gerais */
     private JTextArea taInformacoes;
+    /* Time para atualizao da barra de progresso */
+    Timer rastreadorDeProgresso;
 
     public TelaInicial() {
+        
         super();
 
         tocador = new Tocador();
-        arquivoMidi = new File[1];
-        arquivoSoundfont = new File[1];
 
         setBounds(100, 100, 400, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -54,7 +57,15 @@ public class TelaInicial extends JFrame {
         configuraSeletorSoundfont();
         configuraInformacoes();
 
-        (new RastreadorDeProgresso(this)).start();
+        rastreadorDeProgresso = new Timer(25, (ActionEvent e) -> {
+            long posicaoSegundos = (long)tocador.obtemPosicaoSegundos();
+            if (posicaoSegundos != -1) {
+                pbProgresso.setValue((int) posicaoSegundos);
+                lbProgresso.setText(divideTempo(posicaoSegundos));
+            }
+        });
+        
+        rastreadorDeProgresso.setRepeats(true);
 
         setVisible(true);
     }
@@ -63,6 +74,7 @@ public class TelaInicial extends JFrame {
         btnPausa = new JButton("Pausar");
         btnPausa.addActionListener(e -> {
             tocador.pausar();
+            rastreadorDeProgresso.stop();
             reproduzOuPausa(false);
         });
         btnPausa.setEnabled(false);
@@ -70,14 +82,17 @@ public class TelaInicial extends JFrame {
         btnTocar.addActionListener(e -> {
             tocador.tocar();
             reproduzOuPausa(true);
+            rastreadorDeProgresso.start();
         });
         btnTocar.setEnabled(false);
         btnParar = new JButton("Parar");
         btnParar.addActionListener(e -> {
             tocador.parar();
+            rastreadorDeProgresso.stop();
             btnParar.setEnabled(false);
             btnPausa.setEnabled(false);
             btnTocar.setEnabled(true);
+            atualizaProgresso();
         });
         btnParar.setEnabled(false);
 
@@ -133,18 +148,17 @@ public class TelaInicial extends JFrame {
         slVolume = new JSlider();
         slVolume.setOrientation(SwingConstants.VERTICAL);
         slVolume.setBounds(344, 135, 30, 272);
-        slVolume.setMaximum(127);
+        slVolume.setMaximum(256);
         slVolume.setMinimum(0);
         slVolume.setMajorTickSpacing(10);
         slVolume.setMinorTickSpacing(1);
-        slVolume.setValue(127);
-        slVolume.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int volume = (int) Math.round((slVolume.getValue() * 100.0) / 127.0);
-                lbVolume.setText(volume + "%");
-                tocador.controlaVolume(slVolume.getValue());
-            }
+        slVolume.setValue(256);
+        tocador.controlaVolume(1.0f);
+        slVolume.addChangeListener((ChangeEvent e) -> {
+            float pct = (float)slVolume.getValue() / slVolume.getMaximum();
+            int volume = (int)Math.round(pct * 100.0f);
+            lbVolume.setText(volume + "%");
+            tocador.controlaVolume(pct);
         });
 
         lbVolume = new JLabel("100%");
@@ -166,19 +180,19 @@ public class TelaInicial extends JFrame {
                 String extensoes[] = new String[2];
                 extensoes[0] = ".mid";
                 extensoes[1] = ".midi";
-                abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)", arquivoMidi);
-                if (arquivoMidi[0] != null) {
-                    if (tocador.carregaArquivo(arquivoMidi[0])) {
-                        tfNomeArquivo.setText(arquivoMidi[0].toString());
+                arquivoMidi = abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)");
+                if (arquivoMidi != null) {
+                    if (tocador.carregaArquivo(arquivoMidi)) {
+                        tfNomeArquivo.setText(arquivoMidi.toString());
                         btnParar.setEnabled(false);
                         btnPausa.setEnabled(false);
                         btnTocar.setEnabled(true);
                         atualizaInformacoes();
-                        pbProgresso.setMaximum((int) tocador.obtemDuracaoSegundos());
+                        pbProgresso.setMaximum((int) tocador.obtemDuracaoNormalSegundos());
                         atualizaProgresso();
                     } else {
                         JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
-                        arquivoMidi[0] = null;
+                        arquivoMidi = null;
                     }
                 }
         });
@@ -197,13 +211,13 @@ public class TelaInicial extends JFrame {
         btnCarregarSoundfont.addActionListener(e ->  {
                 String extensoes[] = new String[1];
                 extensoes[0] = ".sf2";
-                abrirArquivo("./soundfonts", extensoes, "Arquivos soundfont(*.sf2)", arquivoSoundfont);
-                if (arquivoSoundfont[0] != null) {
-                    if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont[0])) {
-                        tfNomeSoundfont.setText(arquivoSoundfont[0].toString());
+                arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos soundfont(*.sf2)");
+                if (arquivoSoundfont != null) {
+                    if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont)) {
+                        tfNomeSoundfont.setText(arquivoSoundfont.toString());
                     } else {
                         JOptionPane.showMessageDialog(null, "Erro no arquivo soundfont.");
-                        arquivoSoundfont[0] = null;
+                        arquivoSoundfont = null;
                     }
                 }
         });
@@ -220,7 +234,7 @@ public class TelaInicial extends JFrame {
         getContentPane().add(taInformacoes);
     }
     
-    private void abrirArquivo(String caminho, String extensoes[], String descricao, File arquivo[]) {
+    private File abrirArquivo(String caminho, String extensoes[], String descricao) {
         JFileChooser seletor = new JFileChooser(caminho);
         seletor.setFileSelectionMode(JFileChooser.FILES_ONLY);
         seletor.setFileFilter(new FileFilter() {
@@ -241,20 +255,22 @@ public class TelaInicial extends JFrame {
                 return descricao;
             }
         });
-        seletor.showOpenDialog(this);
-        arquivo[0] = seletor.getSelectedFile();
+        if (seletor.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            return seletor.getSelectedFile();
+        }
+        return null;
     }
 
     public void atualizaInformacoes() {
         StringBuilder sb = new StringBuilder();
-        long duracao = tocador.obtemDuracaoSegundos();
+        long duracao = (long)tocador.obtemDuracaoNormalSegundos();
         long resolucao = tocador.obtemResolucao();
         double duracao_seminima = tocador.obtemDuracaoSeminima();
         long total_tiques = tocador.obtemTotalTiques();
         double duracao_tique = tocador.obtemDuracaoTique();
         double bpm = 60.0 / duracao_seminima;
         long total_seminimas = tocador.obtemTotalSeminimas();
-        sb.append("Nome do arquivo: ").append(arquivoMidi[0].getName())
+        sb.append("Nome do arquivo: ").append(arquivoMidi.getName())
                 .append("\nResolução: ").append(resolucao).append(" tiques por semínima")
                 .append("\nDuração: ").append(divideTempo(duracao))
                 .append("\nTotal de tiques: ").append(total_tiques)
@@ -266,9 +282,8 @@ public class TelaInicial extends JFrame {
     }
 
     public void atualizaProgresso() {
-        long posicaoMicrosegundos = tocador.obtemPosicaoMicrosegundos();
-        if (posicaoMicrosegundos != -1) {
-            long posicaoSegundos = posicaoMicrosegundos / 1000000;
+        long posicaoSegundos = (long)tocador.obtemPosicaoSegundos();
+        if (posicaoSegundos != -1) {
             pbProgresso.setValue((int) posicaoSegundos);
             lbProgresso.setText(divideTempo(posicaoSegundos));
         }
@@ -286,26 +301,6 @@ public class TelaInicial extends JFrame {
         btnPausa.setEnabled(reproduzindo);
         btnTocar.setEnabled(!reproduzindo);
         btnParar.setEnabled(true);
-    }
-
-    private class RastreadorDeProgresso extends Thread {
-        private TelaInicial tela;
-
-        protected RastreadorDeProgresso(TelaInicial tela) {
-            this.tela = tela;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (true) {
-                    Thread.sleep(1000);
-                    tela.atualizaProgresso();
-                }
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }
