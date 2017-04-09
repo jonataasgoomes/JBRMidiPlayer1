@@ -64,6 +64,7 @@ public class TelaInicial extends JFrame {
         setIconImage(icon.getImage());
 
         configuraControleDeFluxo();
+        eventosMid();
         configuraBpm();
         configuraProgresso();
         configuraVolume();
@@ -86,12 +87,12 @@ public class TelaInicial extends JFrame {
 
 
 
-    private void EventosMid(){
+    private void eventosMid(){
 
         new JButton("NOME DO BOTAO");
         btnEventos.setBounds(310, 76, 64, 23);
         getContentPane().add(btnEventos);
-        
+
     }
 
     private void configuraBpm(){
