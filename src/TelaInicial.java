@@ -45,7 +45,7 @@ public class TelaInicial extends JFrame {
     Timer rastreadorDeProgresso;
 
     public TelaInicial() {
-
+        
         super();
 
         tocador = new Tocador();
@@ -56,6 +56,7 @@ public class TelaInicial extends JFrame {
         setTitle("Tocador JBR");
         setLocationRelativeTo(null);
         getContentPane().setLayout(null);
+        
         ImageIcon icon = new ImageIcon("./icon.png");
         setIconImage(icon.getImage());
 
@@ -75,16 +76,18 @@ public class TelaInicial extends JFrame {
                 lbProgresso.setText(divideTempo(posicaoSegundos));
             }
         });
-
+        
         rastreadorDeProgresso.setRepeats(true);
 
         setVisible(true);
     }
 
+
+
     private void eventosMid(){
 
-        btnEventos = new JButton("BOTAO DE EVENTOS");
-        btnEventos.setBounds(10, 72, 364, 23);
+        btnEventos = new JButton("NOME");
+        btnEventos.setBounds(285, 72, 89, 23);
         getContentPane().add(btnEventos);
 
     }
@@ -92,13 +95,13 @@ public class TelaInicial extends JFrame {
     private void configuraBpm(){
 
         lbBpm = new JLabel("BPM");
-        lbBpm.setBounds(33, 304, 66, 41);
+        lbBpm.setBounds(33, 418, 66, 41);
 
         btnAumentarBpm = new JButton("+");
-        btnAumentarBpm.setBounds(109, 313, 89, 23);
+        btnAumentarBpm.setBounds(105, 418, 62, 41);
 
         btnDiminuirBpm = new JButton("-");
-        btnDiminuirBpm.setBounds(208, 313, 89, 23);
+        btnDiminuirBpm.setBounds(177, 418, 62, 41);
 
         getContentPane().add(btnAumentarBpm);
         getContentPane().add(btnDiminuirBpm);
@@ -140,10 +143,10 @@ public class TelaInicial extends JFrame {
         getContentPane().add(btnTocar);
         getContentPane().add(btnParar);
     }
-
+    
     private void configuraProgresso() {
         pbProgresso = new JProgressBar();
-        pbProgresso.setBounds(10, 502, 364, 14);
+        pbProgresso.setBounds(33, 470, 301, 14);
         pbProgresso.setMinimum(0);
         pbProgresso.addMouseListener(new MouseListener() {
             @Override
@@ -174,7 +177,7 @@ public class TelaInicial extends JFrame {
             }
         });
         lbProgresso = new JLabel("hh:mm:ss");
-        lbProgresso.setBounds(330, 457, 54, 25);
+        lbProgresso.setBounds(168, 485, 65, 14);
 
         getContentPane().add(pbProgresso);
         getContentPane().add(lbProgresso);
@@ -194,7 +197,7 @@ public class TelaInicial extends JFrame {
             float pct = (float)slVolume.getValue() / slVolume.getMaximum();
             mudaVolume(pct);
         });
-
+        
         slVolume.setUI(new MetalSliderUI() {
             @Override
             protected void scrollDueToClickInTrack(int direction) {
@@ -207,16 +210,16 @@ public class TelaInicial extends JFrame {
                 slider.setValue(value);
             }
         });
-
+        
         lbVolume = new JLabel("");
-        lbVolume.setBounds(330, 405, 54, 41);
+        lbVolume.setBounds(334, 400, 62, 41);
 
         getContentPane().add(slVolume);
         getContentPane().add(lbVolume);
-
+        
         mudaVolume(1.f);
     }
-
+    
     private void mudaVolume(float valor) {
         int volume = (int)Math.round(valor * 100.0f);
         lbVolume.setText("Vol: " + volume + "%");
@@ -238,7 +241,7 @@ public class TelaInicial extends JFrame {
             arquivoMidi = abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)");
             if (arquivoMidi != null) {
                 if (tocador.carregaArquivo(arquivoMidi)) {
-                    tfNomeArquivo.setText("Arquivo MIDI:  " + arquivoMidi.toString());
+                    tfNomeArquivo.setText(arquivoMidi.toString());
                     btnParar.setEnabled(false);
                     btnPausa.setEnabled(false);
                     btnTocar.setEnabled(true);
@@ -283,17 +286,12 @@ public class TelaInicial extends JFrame {
 
     private void configuraInformacoes() {
         taInformacoes = new JTextArea();
-        taInformacoes.setBounds(33, 135, 301, 130);
+        taInformacoes.setBounds(33, 135, 301, 191);
         taInformacoes.setEditable(false);
 
         getContentPane().add(taInformacoes);
-        ImageIcon imagem = new ImageIcon("icons/fundo.png");
-        JLabel label = new JLabel();
-        label.setBounds(10, 72, 374, 302);
-        label.setIcon(imagem);
-        getContentPane().add(label);
     }
-
+    
     private File abrirArquivo(String caminho, String extensoes[], String descricao) {
         JFileChooser seletor = new JFileChooser(caminho);
         seletor.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -364,5 +362,5 @@ public class TelaInicial extends JFrame {
         btnTocar.setEnabled(!reproduzindo);
         btnParar.setEnabled(true);
     }
-
+    
 }
