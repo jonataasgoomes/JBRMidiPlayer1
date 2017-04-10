@@ -223,16 +223,28 @@ public class Tocador {
     
     public double obtemPosicaoSegundos() {
         if (sequenciador != null) {
-            double tempo = sequenciador.getMicrosecondPosition() / 1000000.d;
-            return tempo;
+            double pct = (double)sequenciador.getTickPosition() / sequenciador.getTickLength();
+            return pct * obtemDuracaoNormalSegundos();
         }
         return -1.d;
     }
     
     public void setPosicaoMicrosegundos(long microsegundos) {
         if (sequenciador != null) {
-            sequenciador.setMicrosecondPosition(microsegundos);
+            double pct = obtemDuracaoNormalSegundos() * 1000000.;
+            pct = (double)microsegundos / pct;
+            long tique = (long)(sequenciador.getTickLength() * pct);
+            if (tique < 0) {
+                tique = 0;
+            } else if (tique > sequenciador.getTickLength()) {
+                tique = sequenciador.getTickLength();
+            }
+            sequenciador.setTickPosition(tique);
         }
+    }
+    
+    public boolean acabou() {
+        return sequenciador != null && sequenciador.getTickLength() == sequenciador.getTickPosition();
     }
     
     public boolean carregaBancoDeInstrumentos(String caminho) {
@@ -372,20 +384,21 @@ public class Tocador {
         if (sequenciador == null)
             return;
         
-        Sequence sequencia = sequenciador.getSequence();
-        
-        if (sequencia == null)
-            return;
+        velocidadeAtual = velocidade;
         
         if (!sequenciador.isRunning()) {
             mudarVelocidadeAoTocar = velocidade;
             return;
         }
         
+        Sequence sequencia = sequenciador.getSequence();
+        
+        if (sequencia == null)
+            return;
+        
         byte[] bytes;
         int microSegundos;
         Track[] trilhas = sequencia.getTracks();
-        velocidadeAtual = velocidade;
         
         try {
             
@@ -540,7 +553,12 @@ public class Tocador {
     
     public void pausar() {
         if (sequenciador != null && sequenciador.isRunning()) {
+            long tiqueAtual = sequenciador.getTickPosition();
+            float velocidadeAoRetocar = velocidadeAtual;
+            controlaAndamento(1.f);
             sequenciador.stop();
+            sequenciador.setTickPosition(tiqueAtual);
+            controlaAndamento(velocidadeAoRetocar);
         }
     }
     

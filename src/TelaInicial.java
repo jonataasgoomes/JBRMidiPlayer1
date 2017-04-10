@@ -5,6 +5,7 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.text.DecimalFormat;
 import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
@@ -69,16 +70,23 @@ public class TelaInicial extends JFrame {
         configuraInformacoes();
 
         rastreadorDeProgresso = new Timer(25, (ActionEvent e) -> {
+            
             long posicaoSegundos = (long)tocador.obtemPosicaoSegundos();
+            
             if (posicaoSegundos != -1) {
                 pbProgresso.setValue((int) posicaoSegundos);
                 lbProgresso.setText(divideTempo(posicaoSegundos));
+            }
+            
+            if (tocador.acabou()) {
+                btnParar.doClick();
             }
         });
 
         rastreadorDeProgresso.setRepeats(true);
 
         setVisible(true);
+        atualizaInformacoes();
     }
 
     private void eventosMid(){
@@ -96,9 +104,19 @@ public class TelaInicial extends JFrame {
 
         btnAumentarBpm = new JButton("+");
         btnAumentarBpm.setBounds(109, 375, 89, 23);
-
+        btnAumentarBpm.addActionListener((ActionEvent e) -> {
+            float velocidade = tocador.getVelocidadeAtual() + 0.1f;
+            tocador.controlaAndamento(velocidade);
+            atualizaInformacoes();
+        });
+        
         btnDiminuirBpm = new JButton("-");
         btnDiminuirBpm.setBounds(208, 375, 89, 23);
+        btnDiminuirBpm.addActionListener((ActionEvent e) -> {
+            float velocidade = tocador.getVelocidadeAtual() - 0.1f;
+            tocador.controlaAndamento(velocidade);
+            atualizaInformacoes();
+        });
 
         getContentPane().add(btnAumentarBpm);
         getContentPane().add(btnDiminuirBpm);
@@ -283,7 +301,7 @@ public class TelaInicial extends JFrame {
 
     private void configuraInformacoes() {
         taInformacoes = new JTextArea();
-        taInformacoes.setBounds(20, 234, 301, 130);
+        taInformacoes.setBounds(20, 220, 301, 144);
         taInformacoes.setEditable(false);
 
         getContentPane().add(taInformacoes);
@@ -332,7 +350,12 @@ public class TelaInicial extends JFrame {
         double duracao_tique = tocador.obtemDuracaoTique();
         int bpm = tocador.obtemAndamento();
         long total_seminimas = tocador.obtemTotalSeminimas();
-        sb.append("Nome do arquivo: ").append(arquivoMidi.getName())
+        String velocidade = new DecimalFormat("#.#").format(tocador.getVelocidadeAtual());
+        
+        sb.append("Nome do arquivo: ");
+        
+        if (arquivoMidi != null) {
+            sb.append(arquivoMidi.getName())
                 .append("\nResolução: ").append(resolucao).append(" tiques por semínima")
                 .append("\nDuração: ").append(divideTempo(duracao))
                 .append("\nTotal de tiques: ").append(total_tiques)
@@ -340,6 +363,11 @@ public class TelaInicial extends JFrame {
                 .append("\nDuração da semínima: ").append(duracao_seminima).append(" s")
                 .append("\nNúmero de semínimas: ").append(total_seminimas)
                 .append(String.format("\nAndamento: %d bpm", bpm));
+        } else {
+            sb.append("nenhum arquivo carregado.");
+        }
+        
+        sb.append("\nVelocidade de reproducao: ").append(velocidade).append("x");
         taInformacoes.setText(sb.toString());
     }
 
