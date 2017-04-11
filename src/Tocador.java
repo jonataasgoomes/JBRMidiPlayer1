@@ -633,4 +633,12 @@ public class Tocador {
     public float getVelocidadeAtual() {
         return velocidadeAtual > 0 ? velocidadeAtual : 1.0f;
     }
+
+    public Sequence getSequencia() {
+        if (sequenciador != null) {
+            return sequenciador.getSequence();
+        }
+        return null;
+    }
+
 }

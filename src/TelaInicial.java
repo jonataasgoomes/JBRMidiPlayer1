@@ -1,4 +1,6 @@
 import java.awt.event.ActionEvent;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.FileFilter;
@@ -61,7 +63,7 @@ public class TelaInicial extends JFrame {
         setIconImage(icon.getImage());
 
         configuraControleDeFluxo();
-        eventosMid();
+        configuraBoraoEventosMidi();
         configuraBpm();
         configuraProgresso();
         configuraVolume();
@@ -89,10 +91,16 @@ public class TelaInicial extends JFrame {
         atualizaInformacoes();
     }
 
-    private void eventosMid(){
+    private void configuraBoraoEventosMidi(){
 
         btnEventos = new JButton("BOTAO DE EVENTOS");
         btnEventos.setBounds(10, 72, 364, 23);
+        btnEventos.addActionListener(e -> {
+            Sequence sequencia = tocador.getSequencia();
+            if (sequencia != null) {
+                new TelaEventosMidi(sequencia.getTracks());
+            }
+        });
         getContentPane().add(btnEventos);
 
     }
