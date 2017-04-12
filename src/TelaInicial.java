@@ -1,6 +1,5 @@
 import java.awt.event.ActionEvent;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.FileFilter;
@@ -98,7 +97,7 @@ public class TelaInicial extends JFrame {
         btnEventos.addActionListener(e -> {
             Sequence sequencia = tocador.getSequencia();
             if (sequencia != null) {
-                new TelaEventosMidi(sequencia.getTracks());
+                new TelaEventosMidi(sequencia.getTracks(), tocador.obtemDuracaoTique());
             }
         });
         getContentPane().add(btnEventos);
