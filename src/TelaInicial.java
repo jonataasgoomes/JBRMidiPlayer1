@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
+import javax.swing.border.BevelBorder;
 import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
@@ -118,7 +119,7 @@ public class TelaInicial extends JPanel {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        GradientPaint gp = new GradientPaint(0, 0, Color.white, 0, getHeight(), new Color(110, 120, 140));
+        GradientPaint gp = new GradientPaint(0, 0, Color.white, 0, getHeight(), new Color(150, 210, 202));
         g2d.setPaint(gp);
         g2d.fillRect(0, 0, getWidth(), getHeight());
         g.drawImage(imagemFundo, 0, 45, this);
@@ -132,7 +133,7 @@ public class TelaInicial extends JPanel {
     private void configuraBoraoEventosMidi(){
 
         btnEventos = new JButton("Eventos MIDI");
-        btnEventos.setBounds(142, 412, 112, 23);
+        btnEventos.setBounds(10, 470, 112, 23);
         btnEventos.addActionListener(e -> {
             Sequence sequencia = tocador.getSequencia();
             if (sequencia != null) {
@@ -147,10 +148,10 @@ public class TelaInicial extends JPanel {
     private void configuraBpm(){
 
         lbBpm = new JLabel();
-        lbBpm.setBounds(12, 366, 192, 41);
+        lbBpm.setBounds(30, 418, 192, 41);
 
         btnAumentarBpm = new JButton("+");
-        btnAumentarBpm.setBounds(220, 375, 44, 23);
+        btnAumentarBpm.setBounds(220, 428, 44, 23);
         btnAumentarBpm.addActionListener((ActionEvent e) -> {
             float velocidade = tocador.getVelocidadeAtual() + 0.1f;
             tocador.controlaAndamento(velocidade);
@@ -159,7 +160,7 @@ public class TelaInicial extends JPanel {
         });
         
         btnDiminuirBpm = new JButton("-");
-        btnDiminuirBpm.setBounds(272, 375, 44, 23);
+        btnDiminuirBpm.setBounds(272, 428, 44, 23);
         btnDiminuirBpm.addActionListener((ActionEvent e) -> {
             float velocidade = tocador.getVelocidadeAtual() - 0.1f;
             tocador.controlaAndamento(velocidade);
@@ -377,7 +378,11 @@ public class TelaInicial extends JPanel {
 
     private void configuraInformacoes() {
         taInformacoes = new JTextArea();
-        taInformacoes.setBounds(20, 220, 301, 144);
+        taInformacoes.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(160, 240, 220), 2, true),
+            BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
+        taInformacoes.setBounds(20, 220, 301, 200);
         taInformacoes.setEditable(false);
         getContentPane().add(taInformacoes);
     }
@@ -420,7 +425,7 @@ public class TelaInicial extends JPanel {
         double duracao_tique = tocador.obtemDuracaoTique();
         int bpm = tocador.obtemAndamento();
         long total_seminimas = tocador.obtemTotalSeminimas();
-        
+        String tonalidade = tocador.obtemTonalidade();
         sb.append("Nome do arquivo: ");
         
         if (arquivoMidi != null) {
@@ -431,6 +436,7 @@ public class TelaInicial extends JPanel {
                 .append("\nDuração de tique: ").append(duracao_tique).append(" s")
                 .append("\nDuração da semínima: ").append(duracao_seminima).append(" s")
                 .append("\nNúmero de semínimas: ").append(total_seminimas)
+                .append("\nTonalidade: ").append(tonalidade)
                 .append(String.format("\nAndamento: %d bpm", bpm));
         } else {
             sb.append("nenhum arquivo carregado.");

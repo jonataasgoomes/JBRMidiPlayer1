@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
@@ -40,6 +39,9 @@ public class Tocador {
     // o BPM "base" da música.
     private int volumeBase = -1;
     private int bpmBase = -1;
+    
+    // Tonalidade do MIDI.
+    private String tonalidade = null;
     
     // Valores que podem ser modificados pelo usuário e
     // são constantes ao Tocador.
@@ -219,6 +221,10 @@ public class Tocador {
         return bpmBase;
     }
     
+    public String obtemTonalidade() {
+        return tonalidade != null ? tonalidade : "?";
+    }
+    
     // Retorna problemas que podem ter ocorrido durante
     // a inicialização da classe.
     public String obtemProblemaAoInstanciar() {
@@ -316,11 +322,15 @@ public class Tocador {
                 Track trilha = trilhas[trilhaId];
                 
                 for (int eventoId = 0; eventoId < trilha.size(); eventoId++) {
+                    
                     MidiEvent evento = trilha.get(eventoId);
                     MidiMessage msg = evento.getMessage();
+                    
                     byte[] bytes = msg.getMessage();
-                    eventosMidiOriginais.add(new MidiEventoTrilha(evento, trilhaId));
                     int status = msg.getStatus();
+                    
+                    eventosMidiOriginais.add(new MidiEventoTrilha(evento, trilhaId));
+
                     if (status == 255 && bytes[1] == 0x51 && bytes[2] == 3) { // Meta Mensagem - Set Tempo
                         eventosMidiBPM.add(new MidiEventoTrilha(evento, trilhaId));
                         if (evento.getTick() < tiquePrimeiroBPMChange) {
@@ -339,6 +349,10 @@ public class Tocador {
                     } else if (status >= 0x90 && status <= 0x9F) { // Note On
                         if (evento.getTick() < tiquePrimeiroNoteOn) {
                             tiquePrimeiroNoteOn = evento.getTick();
+                        }
+                    } else if (status == 255 && bytes[1] == 0x59 && bytes[2] >= 2) { // Key Signature
+                        if (tonalidade == null) {
+                            tonalidade = Utilitario.obtemTonalidade(bytes[4] == 0, bytes[3]);
                         }
                     }
                 }
