@@ -2,6 +2,7 @@ import javax.sound.midi.MidiMessage;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by Ricardo on 09/04/2017.
@@ -66,133 +67,48 @@ public class TelaEventosMidi extends JFrame {
         String statusString = Integer.toString(status);
         boolean reportarEmQualCanal = false;
         StringBuilder sb = new StringBuilder();
-        switch (status & 0xF0) {
-            case MENSAGEM_NOTE_OFF:
-                sb.append("[Note OFF] ").append(converteNota(bytes_mensagem[1]));
-                reportarEmQualCanal = true;
-                break;
-            case MENSAGEM_NOTE_ON:
-                sb.append("[Note ON] ").append(converteNota(bytes_mensagem[1]));
-                reportarEmQualCanal = true;
-                break;
-            case MENSAGEM_POLY_KEY:
-                sb.append("[Polyphonic key pressure]");
-                break;
-            case MENSAGEM_CTRL_CHANGE:
-                sb.append("[Control change] - ");
-                reportarEmQualCanal = true;
-                switch (bytes_mensagem[1]) {
-                    case 0x00: sb.append("Bank Select"); break;
-                    case 0x01: sb.append("Modulation Wheel or Lever"); break;
-                    case 0x02: sb.append("Breath Controller"); break;
-                    case 0x03: sb.append("Undefined"); break;
-                    case 0x04: sb.append("Foot Controller"); break;
-                    case 0x05: sb.append("Portamento Time"); break;
-                    case 0x06: sb.append("Data Entry MSB"); break;
-                    case 0x07: sb.append("Channel Volume (formerly Main Volume)"); break;
-                    case 0x08: sb.append("Balance"); break;
-                    case 0x09: sb.append("Undefined"); break;
-                    case 0x0A: sb.append("Pan"); break;
-                    case 0x0B: sb.append("Expression Controller"); break;
-                    case 0x0C: sb.append("Effect Control 1"); break;
-                    case 0x0D: sb.append("Effect Control 2"); break;
-                    case 0x10: sb.append("General Purpose Controller 1"); break;
-                    case 0x11: sb.append("General Purpose Controller 2"); break;
-                    case 0x12: sb.append("General Purpose Controller 3"); break;
-                    case 0x13: sb.append("General Purpose Controller 4"); break;
-                    case 0x20: sb.append("LSB for Control 0 (Bank Select)"); break;
-                    case 0x21: sb.append("LSB for Control 1 (Modulation Wheel or Lever)"); break;
-                    case 0x22: sb.append("LSB for Control 2 (Breath Controller)"); break;
-                    case 0x23: sb.append("LSB for Control 3 (Undefined)"); break;
-                    case 0x24: sb.append("LSB for Control 4 (Foot Controller)"); break;
-                    case 0x25: sb.append("LSB for Control 5 (Portamento Time)"); break;
-                    case 0x26: sb.append("LSB for Control 6 (Data Entry)"); break;
-                    case 0x27: sb.append("LSB for Control 7 (Channel Volume, formerly Main Volume)"); break;
-                    case 0x28: sb.append("LSB for Control 8 (Balance)"); break;
-                    case 0x29: sb.append("LSB for Control 9 (Undefined)"); break;
-                    case 0x2A: sb.append("LSB for Control 10 (Pan)"); break;
-                    case 0x2B: sb.append("LSB for Control 11 (Expression Controller)"); break;
-                    case 0x2C: sb.append("LSB for Control 12 (Effect control 1)"); break;
-                    case 0x2D: sb.append("LSB for Control 13 (Effect control 2)"); break;
-                    case 0x2E: sb.append("LSB for Control 14 (Undefined)"); break;
-                    case 0x2F: sb.append("LSB for Control 15 (Undefined)"); break;
-                    case 0x30: sb.append("LSB for Control 16 (General Purpose Controller 1)"); break;
-                    case 0x31: sb.append("LSB for Control 17 (General Purpose Controller 2)"); break;
-                    case 0x32: sb.append("LSB for Control 18 (General Purpose Controller 3)"); break;
-                    case 0x33: sb.append("LSB for Control 19 (General Purpose Controller 4)"); break;
-                    case 0x34: sb.append("LSB for Control 20 (Undefined)"); break;
-                    case 0x35: sb.append("LSB for Control 21 (Undefined)"); break;
-                    case 0x36: sb.append("LSB for Control 22 (Undefined)"); break;
-                    case 0x37: sb.append("LSB for Control 23 (Undefined)"); break;
-                    case 0x38: sb.append("LSB for Control 24 (Undefined)"); break;
-                    case 0x39: sb.append("LSB for Control 25 (Undefined)"); break;
-                    case 0x3A: sb.append("LSB for Control 26 (Undefined)"); break;
-                    case 0x3B: sb.append("LSB for Control 27 (Undefined)"); break;
-                    case 0x3C: sb.append("LSB for Control 28 (Undefined)"); break;
-                    case 0x3D: sb.append("LSB for Control 29 (Undefined)"); break;
-                    case 0x3E: sb.append("LSB for Control 30 (Undefined)"); break;
-                    case 0x3F: sb.append("LSB for Control 31 (Undefined)"); break;
-                    case 0x40: sb.append("Damper Pedal on/off (Sustain)"); break;
-                    case 0x41: sb.append("Portamento On/Off"); break;
-                    case 0x42: sb.append("Sostenuto On/Off"); break;
-                    case 0x43: sb.append("Soft Pedal On/Off"); break;
-                    case 0x44: sb.append("Legato Footswitch"); break;
-                    case 0x45: sb.append("Hold 2"); break;
-                    case 0x46: sb.append("Sound Controller 1 (default: Sound Variation)"); break;
-                    case 0x47: sb.append("Sound Controller 2 (default: Timbre/Harmonic Intens.)"); break;
-                    case 0x48: sb.append("Sound Controller 3 (default: Release Time)"); break;
-                    case 0x49: sb.append("Sound Controller 4 (default: Attack Time)"); break;
-                    case 0x4A: sb.append("Sound Controller 5 (default: Brightness)"); break;
-                    case 0x4B: sb.append("Sound Controller 6 (default: Decay Time - see MMA RP-021)"); break;
-                    case 0x4C: sb.append("Sound Controller 7 (default: Vibrato Rate - see MMA RP-021)"); break;
-                    case 0x4D: sb.append("Sound Controller 8 (default: Vibrato Depth - see MMA RP-021)"); break;
-                    case 0x4E: sb.append("Sound Controller 9 (default: Vibrato Delay - see MMA RP-021)"); break;
-                    case 0x4F: sb.append("Sound Controller 10 (default undefined - see MMA RP-021)"); break;
-                    case 0x50: sb.append("General Purpose Controller 5"); break;
-                    case 0x51: sb.append("General Purpose Controller 6"); break;
-                    case 0x52: sb.append("General Purpose Controller 7"); break;
-                    case 0x53: sb.append("General Purpose Controller 8"); break;
-                    case 0x54: sb.append("Portamento Control"); break;
-                    case 0x58: sb.append("High Resolution Velocity Prefix"); break;
-                    case 0x5B: sb.append("Effects 1 Depth (formerly External Effects Depth)"); break;
-                    case 0x5C: sb.append("Effects 2 Depth (formerly Tremolo Depth)"); break;
-                    case 0x5D: sb.append("Effects 3 Depth (formerly Chorus Depth)"); break;
-                    case 0x5E: sb.append("Effects 4 Depth (formerly Celeste [Detune] Depth)"); break;
-                    case 0x5F: sb.append("Effects 5 Depth (formerly Phaser Depth)"); break;
-                    case 0x60: sb.append("Data Increment (Data Entry +1)"); break;
-                    case 0x61: sb.append("Data Decrement (Data Entry -1)"); break;
-                    case 0x62: sb.append("Non-Registered Parameter Number (NRPN) - LSB"); break;
-                    case 0x63: sb.append("Non-Registered Parameter Number (NRPN) - MSB"); break;
-                    case 0x64: sb.append("Registered Parameter Number (RPN) - LSB*"); break;
-                    case 0x65: sb.append("Registered Parameter Number (RPN) - MSB*"); break;
-                    case 0x78: sb.append("[Channel Mode Message] All Sound Off"); break;
-                    case 0x79: sb.append("[Channel Mode Message] Reset All Controllers (See MMA RP-015)"); break;                                
-                    case 0x7A: sb.append("[Channel Mode Message] Local Control On/Off"); break;                                
-                    case 0x7B: sb.append("[Channel Mode Message] All Notes Off"); break;                                
-                    case 0x7C: sb.append("[Channel Mode Message] Omni Mode Off (+ all notes off)"); break;                                
-                    case 0x7D: sb.append("[Channel Mode Message] Omni Mode On (+ all notes off)"); break;                                
-                    case 0x7E: sb.append("[Channel Mode Message] Mono Mode On (+ poly off, + all notes off)"); break;                                
-                    case 0x7F: sb.append("[Channel Mode Message] Poly Mode On (+ mono off, +all notes off)"); break;                                
-                    default: sb.append("Undefined"); break;
-                }
-                break;
-            case MENSAGEM_PROG_CHANGE:
-                sb.append("[Program change]");
-                reportarEmQualCanal = true;
-                break;
-            case MENSAGEM_CHAN_PRES:
-                sb.append("[Channel pressure]");
-                reportarEmQualCanal = true;
-                break;
-            case MENSAGEM_PITCH_BEND:
-                sb.append("[Pitch bend]");
-                reportarEmQualCanal = true;
-                break;
-            default:
-                sb.append((status == 0xFF) ? "[Meta mensagem]" : Integer.toString(status));
-                break;
-        }
         
+        if (status == 0xFF) {
+            
+            sb.append("[Meta mensagem]");
+            preencheBuilderMetaMensagem(sb, bytes_mensagem);
+        } else {
+                 
+            switch (status & 0xF0) {
+                case MENSAGEM_NOTE_OFF:
+                    sb.append("[Note OFF] ").append(converteNota(bytes_mensagem[1]));
+                    reportarEmQualCanal = true;
+                    break;
+                case MENSAGEM_NOTE_ON:
+                    sb.append("[Note ON] ").append(converteNota(bytes_mensagem[1]));
+                    reportarEmQualCanal = true;
+                    break;
+                case MENSAGEM_POLY_KEY:
+                    sb.append("[Polyphonic key pressure]");
+                    break;
+                case MENSAGEM_CTRL_CHANGE:
+                    sb.append("[Control change] - ");
+                    reportarEmQualCanal = true;
+                    preencheBuilderControlChange(sb, bytes_mensagem[1]);
+                    break;
+                case MENSAGEM_PROG_CHANGE:
+                    sb.append("[Program change]");
+                    reportarEmQualCanal = true;
+                    break;
+                case MENSAGEM_CHAN_PRES:
+                    sb.append("[Channel pressure]");
+                    reportarEmQualCanal = true;
+                    break;
+                case MENSAGEM_PITCH_BEND:
+                    sb.append("[Pitch bend]");
+                    reportarEmQualCanal = true;
+                    break;
+                default:
+                    sb.append(status);
+                    break;
+            }
+        }
+    
         if (reportarEmQualCanal) {
             statusString = Integer.toString(status & 0xF0);
             statusString += ", canal: " + (status - (int)(bytes_mensagem[0] & 0xF0));
@@ -222,33 +138,158 @@ public class TelaEventosMidi extends JFrame {
         String s_nota;
         int nota_int = Byte.toUnsignedInt(nota);
         switch (nota_int % 12) {
-            case 0:
-                s_nota = "Dó"; break;
-            case 1:
-                s_nota = "Dó#"; break;
-            case 2:
-                s_nota = "Ré"; break;
-            case 3:
-                s_nota = "Ré#"; break;
-            case 4:
-                s_nota = "Mi"; break;
-            case 5:
-                s_nota = "Fá"; break;
-            case 6:
-                s_nota = "Fá#"; break;
-            case 7:
-                s_nota = "Sol"; break;
-            case 8:
-                s_nota = "Sol#"; break;
-            case 9:
-                s_nota = "Lá"; break;
-            case 10:
-                s_nota = "Lá#"; break;
-            case 11:
-                s_nota = "Si"; break;
-            default:
-                s_nota = "";
+            case 0: s_nota = "Dó"; break;
+            case 1: s_nota = "Dó#"; break;
+            case 2: s_nota = "Ré"; break;
+            case 3: s_nota = "Ré#"; break;
+            case 4: s_nota = "Mi"; break;
+            case 5: s_nota = "Fá"; break;
+            case 6: s_nota = "Fá#"; break;
+            case 7: s_nota = "Sol"; break;
+            case 8: s_nota = "Sol#"; break;
+            case 9: s_nota = "Lá"; break;
+            case 10: s_nota = "Lá#"; break;
+            case 11: s_nota = "Si"; break;
+            default: s_nota = ""; break;
         }
         return String.format("%s, %dª oitava", s_nota, (nota_int / 12) - 2);
+    }
+    
+    private void preencheBuilderMetaMensagem(StringBuilder sb, byte[] dados) {
+        
+        sb.append(" - ");
+        
+        // Retirados de: http://www.recordingblogs.com/sa/Wiki/topic/MIDI-meta-messages
+        switch (dados[1]) {
+            case 0x00: sb.append("Number of sequence"); break;
+            case 0x01: sb.append("Text: "); break;
+            case 0x02: sb.append("Copyright: "); break;
+            case 0x03: sb.append("Track name: "); break;
+            case 0x04: sb.append("Instrument name: "); break;
+            case 0x05: sb.append("Track name: "); break;
+            case 0x06: sb.append("Marker: "); break;
+            case 0x07: sb.append("Cue point: "); break;
+            case 0x20: sb.append("Channel prefix"); break;
+            case 0x2F: sb.append("End of track"); break;
+            case 0x51:
+                sb.append("Set tempo: ");
+                int microSegundos = (int)(dados[3] & 0xFF) * 65536;
+                microSegundos += (int)(dados[4] & 0xFF) * 256;
+                microSegundos += (int)(dados[5] & 0xFF);
+                sb.append(microSegundos).append(" ms, ");
+                sb.append(60000000/microSegundos).append(" bpm");
+                break;
+            case 0x54: sb.append("SMPTE offset"); break;
+            case 0x58: sb.append("Key signature"); break;
+            case 0x59: sb.append("Time signature"); break;
+            case 0x7F: sb.append("Manufacturer specific"); break;
+                
+            default:
+                sb.append("desconhecido");
+                break;
+        }
+        
+        // Meta mensagens com texto
+        if (dados[1] >= 0x01 && dados[1] <= 0x07) {
+            sb.append(new String(Arrays.copyOfRange(dados, 3, 3 + dados[2])));
+        }
+    }
+    
+    // Retirados de: https://www.midi.org/specifications/item/table-3-control-change-messages-data-bytes-2
+    private void preencheBuilderControlChange(StringBuilder sb, byte dado) {
+        switch (dado) {
+            case 0x00: sb.append("Bank Select"); break;
+            case 0x01: sb.append("Modulation Wheel or Lever"); break;
+            case 0x02: sb.append("Breath Controller"); break;
+            case 0x03: sb.append("Undefined"); break;
+            case 0x04: sb.append("Foot Controller"); break;
+            case 0x05: sb.append("Portamento Time"); break;
+            case 0x06: sb.append("Data Entry MSB"); break;
+            case 0x07: sb.append("Channel Volume (formerly Main Volume)"); break;
+            case 0x08: sb.append("Balance"); break;
+            case 0x09: sb.append("Undefined"); break;
+            case 0x0A: sb.append("Pan"); break;
+            case 0x0B: sb.append("Expression Controller"); break;
+            case 0x0C: sb.append("Effect Control 1"); break;
+            case 0x0D: sb.append("Effect Control 2"); break;
+            case 0x10: sb.append("General Purpose Controller 1"); break;
+            case 0x11: sb.append("General Purpose Controller 2"); break;
+            case 0x12: sb.append("General Purpose Controller 3"); break;
+            case 0x13: sb.append("General Purpose Controller 4"); break;
+            case 0x20: sb.append("LSB for Control 0 (Bank Select)"); break;
+            case 0x21: sb.append("LSB for Control 1 (Modulation Wheel or Lever)"); break;
+            case 0x22: sb.append("LSB for Control 2 (Breath Controller)"); break;
+            case 0x23: sb.append("LSB for Control 3 (Undefined)"); break;
+            case 0x24: sb.append("LSB for Control 4 (Foot Controller)"); break;
+            case 0x25: sb.append("LSB for Control 5 (Portamento Time)"); break;
+            case 0x26: sb.append("LSB for Control 6 (Data Entry)"); break;
+            case 0x27: sb.append("LSB for Control 7 (Channel Volume, formerly Main Volume)"); break;
+            case 0x28: sb.append("LSB for Control 8 (Balance)"); break;
+            case 0x29: sb.append("LSB for Control 9 (Undefined)"); break;
+            case 0x2A: sb.append("LSB for Control 10 (Pan)"); break;
+            case 0x2B: sb.append("LSB for Control 11 (Expression Controller)"); break;
+            case 0x2C: sb.append("LSB for Control 12 (Effect control 1)"); break;
+            case 0x2D: sb.append("LSB for Control 13 (Effect control 2)"); break;
+            case 0x2E: sb.append("LSB for Control 14 (Undefined)"); break;
+            case 0x2F: sb.append("LSB for Control 15 (Undefined)"); break;
+            case 0x30: sb.append("LSB for Control 16 (General Purpose Controller 1)"); break;
+            case 0x31: sb.append("LSB for Control 17 (General Purpose Controller 2)"); break;
+            case 0x32: sb.append("LSB for Control 18 (General Purpose Controller 3)"); break;
+            case 0x33: sb.append("LSB for Control 19 (General Purpose Controller 4)"); break;
+            case 0x34: sb.append("LSB for Control 20 (Undefined)"); break;
+            case 0x35: sb.append("LSB for Control 21 (Undefined)"); break;
+            case 0x36: sb.append("LSB for Control 22 (Undefined)"); break;
+            case 0x37: sb.append("LSB for Control 23 (Undefined)"); break;
+            case 0x38: sb.append("LSB for Control 24 (Undefined)"); break;
+            case 0x39: sb.append("LSB for Control 25 (Undefined)"); break;
+            case 0x3A: sb.append("LSB for Control 26 (Undefined)"); break;
+            case 0x3B: sb.append("LSB for Control 27 (Undefined)"); break;
+            case 0x3C: sb.append("LSB for Control 28 (Undefined)"); break;
+            case 0x3D: sb.append("LSB for Control 29 (Undefined)"); break;
+            case 0x3E: sb.append("LSB for Control 30 (Undefined)"); break;
+            case 0x3F: sb.append("LSB for Control 31 (Undefined)"); break;
+            case 0x40: sb.append("Damper Pedal on/off (Sustain)"); break;
+            case 0x41: sb.append("Portamento On/Off"); break;
+            case 0x42: sb.append("Sostenuto On/Off"); break;
+            case 0x43: sb.append("Soft Pedal On/Off"); break;
+            case 0x44: sb.append("Legato Footswitch"); break;
+            case 0x45: sb.append("Hold 2"); break;
+            case 0x46: sb.append("Sound Controller 1 (default: Sound Variation)"); break;
+            case 0x47: sb.append("Sound Controller 2 (default: Timbre/Harmonic Intens.)"); break;
+            case 0x48: sb.append("Sound Controller 3 (default: Release Time)"); break;
+            case 0x49: sb.append("Sound Controller 4 (default: Attack Time)"); break;
+            case 0x4A: sb.append("Sound Controller 5 (default: Brightness)"); break;
+            case 0x4B: sb.append("Sound Controller 6 (default: Decay Time - see MMA RP-021)"); break;
+            case 0x4C: sb.append("Sound Controller 7 (default: Vibrato Rate - see MMA RP-021)"); break;
+            case 0x4D: sb.append("Sound Controller 8 (default: Vibrato Depth - see MMA RP-021)"); break;
+            case 0x4E: sb.append("Sound Controller 9 (default: Vibrato Delay - see MMA RP-021)"); break;
+            case 0x4F: sb.append("Sound Controller 10 (default undefined - see MMA RP-021)"); break;
+            case 0x50: sb.append("General Purpose Controller 5"); break;
+            case 0x51: sb.append("General Purpose Controller 6"); break;
+            case 0x52: sb.append("General Purpose Controller 7"); break;
+            case 0x53: sb.append("General Purpose Controller 8"); break;
+            case 0x54: sb.append("Portamento Control"); break;
+            case 0x58: sb.append("High Resolution Velocity Prefix"); break;
+            case 0x5B: sb.append("Effects 1 Depth (formerly External Effects Depth)"); break;
+            case 0x5C: sb.append("Effects 2 Depth (formerly Tremolo Depth)"); break;
+            case 0x5D: sb.append("Effects 3 Depth (formerly Chorus Depth)"); break;
+            case 0x5E: sb.append("Effects 4 Depth (formerly Celeste [Detune] Depth)"); break;
+            case 0x5F: sb.append("Effects 5 Depth (formerly Phaser Depth)"); break;
+            case 0x60: sb.append("Data Increment (Data Entry +1)"); break;
+            case 0x61: sb.append("Data Decrement (Data Entry -1)"); break;
+            case 0x62: sb.append("Non-Registered Parameter Number (NRPN) - LSB"); break;
+            case 0x63: sb.append("Non-Registered Parameter Number (NRPN) - MSB"); break;
+            case 0x64: sb.append("Registered Parameter Number (RPN) - LSB*"); break;
+            case 0x65: sb.append("Registered Parameter Number (RPN) - MSB*"); break;
+            case 0x78: sb.append("[Channel Mode Message] All Sound Off"); break;
+            case 0x79: sb.append("[Channel Mode Message] Reset All Controllers (See MMA RP-015)"); break;                                
+            case 0x7A: sb.append("[Channel Mode Message] Local Control On/Off"); break;                                
+            case 0x7B: sb.append("[Channel Mode Message] All Notes Off"); break;                                
+            case 0x7C: sb.append("[Channel Mode Message] Omni Mode Off (+ all notes off)"); break;                                
+            case 0x7D: sb.append("[Channel Mode Message] Omni Mode On (+ all notes off)"); break;                                
+            case 0x7E: sb.append("[Channel Mode Message] Mono Mode On (+ poly off, + all notes off)"); break;                                
+            case 0x7F: sb.append("[Channel Mode Message] Poly Mode On (+ mono off, +all notes off)"); break;                                
+            default: sb.append("Undefined"); break;
+        }
     }
 }
