@@ -28,10 +28,10 @@ public class Tocador {
     // ser garantido.
     private String problemaAoInstanciar = null;
     
-    private List<MidiEvent> eventosMidiOriginais = new ArrayList<>();
-    private List<MidiEventoTrilha> eventosMidiVolume = new ArrayList<>();
-    private List<MidiEventoTrilha> eventosMidiBPM = new ArrayList<>();
-    private List<MidiEvent> eventosMidiBPMRemoviveis = new ArrayList<>();
+    private ArrayList<MidiEventoTrilha> eventosMidiOriginais = new ArrayList<>();
+    private ArrayList<MidiEventoTrilha> eventosMidiVolume = new ArrayList<>();
+    private ArrayList<MidiEventoTrilha> eventosMidiBPM = new ArrayList<>();
+    private ArrayList<MidiEvent> eventosMidiBPMRemoviveis = new ArrayList<>();
     
     // Valores iniciais de volume/BPM de uma música.
     // Quando uma música é carregada, o primeiro evento Midi
@@ -86,6 +86,10 @@ public class Tocador {
         } catch (Exception ex) {
             problemaAoInstanciar = ex.toString();
         }
+    }
+    
+    public ArrayList<MidiEventoTrilha> obtemEventosMidi() {
+        return eventosMidiOriginais;
     }
     
     // Retorna a duração em segundos de um MIDI
@@ -315,7 +319,7 @@ public class Tocador {
                     MidiEvent evento = trilha.get(eventoId);
                     MidiMessage msg = evento.getMessage();
                     byte[] bytes = msg.getMessage();
-                    eventosMidiOriginais.add(evento);
+                    eventosMidiOriginais.add(new MidiEventoTrilha(evento, trilhaId));
                     int status = msg.getStatus();
                     if (status == 255 && bytes[1] == 0x51 && bytes[2] == 3) { // Meta Mensagem - Set Tempo
                         eventosMidiBPM.add(new MidiEventoTrilha(evento, trilhaId));
@@ -598,35 +602,6 @@ public class Tocador {
         
         if (sintetizador != null && sintetizador.isOpen()) {
             sintetizador.close();
-        }
-    }
-    
-    private class MidiEventoTrilha {
-        
-        public MidiEvent evento;
-        public int trilhaId;
-        public int canal;
-        public int valor;
-        
-        MidiEventoTrilha (MidiEvent evento, int trilhaId) {
-            
-            this.trilhaId = trilhaId;
-            this.evento = evento;
-            
-            byte[] bytes = evento.getMessage().getMessage();
-            int length = evento.getMessage().getLength();
-            int status = evento.getMessage().getStatus();
-            
-            if (length == 6 && status == 0xFF && bytes[1] == 0x51) { // Meta Mensagem - SetTempo
-                valor = (int)(bytes[3] & 0xFF) * 65536;
-                valor += (int)(bytes[4] & 0xFF) * 256;
-                valor += (int)(bytes[5] & 0xFF);
-            } else if (length == 3 && status >= 0xB0 &&
-                       status <= 0xBF && bytes[1] == 0x07) { // Control Change - Volume
-                canal = status - 0xB0;
-                valor = (int)(bytes[2] & 0xFF);
-            }
-            
         }
     }
 

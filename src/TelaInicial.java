@@ -1,3 +1,9 @@
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import javax.sound.midi.Sequence;
 import javax.swing.*;
@@ -5,16 +11,21 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import javax.imageio.ImageIO;
 import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
  * Created by Ricardo on 07/04/2017.
  */
 
-public class TelaInicial extends JFrame {
+public class TelaInicial extends JPanel {
 
+    public JFrame janela;
+    
     public File arquivoMidi = null;
     public File arquivoSoundfont = null;
     public Tocador tocador = null;
@@ -45,21 +56,33 @@ public class TelaInicial extends JFrame {
     private JTextArea taInformacoes;
     /* Time para atualizao da barra de progresso */
     Timer rastreadorDeProgresso;
+    /* Imgem de fundo */
+    private BufferedImage imagemFundo;
 
     public TelaInicial() {
 
         super();
 
         tocador = new Tocador();
-
-        setBounds(100, 100, 400, 600);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
-        setTitle("Tocador JBR");
-        setLocationRelativeTo(null);
-        getContentPane().setLayout(null);
+        janela = new JFrame("Tocador JBR");
+        
+        setBounds(100, 100, 400, 400);
+        janela.setBounds(100, 100, 400, 600);
+        janela.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        janela.setResizable(false);
+        janela.setLocationRelativeTo(null);
+        setLayout(null);
+        
         ImageIcon icon = new ImageIcon("./icon.png");
-        setIconImage(icon.getImage());
+        janela.setIconImage(icon.getImage());
+        
+        janela.getContentPane().add(this);
+        
+        try {                
+          imagemFundo = ImageIO.read(new File("./icons/fundo.png"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
         configuraControleDeFluxo();
         configuraBoraoEventosMidi();
@@ -86,49 +109,73 @@ public class TelaInicial extends JFrame {
 
         rastreadorDeProgresso.setRepeats(true);
 
-        setVisible(true);
+        janela.setVisible(true);
         atualizaInformacoes();
+    }
+    
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        GradientPaint gp = new GradientPaint(0, 0, Color.white, 0, getHeight(), new Color(110, 120, 140));
+        g2d.setPaint(gp);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+        g.drawImage(imagemFundo, 0, 45, this);
+    }
+    
+    // Atalho para pegar content pane da JFrame
+    public Container getContentPane() {
+        return this;
     }
 
     private void configuraBoraoEventosMidi(){
 
-        btnEventos = new JButton("BOTAO DE EVENTOS");
-        btnEventos.setBounds(10, 72, 364, 23);
+        btnEventos = new JButton("Eventos MIDI");
+        btnEventos.setBounds(142, 412, 112, 23);
         btnEventos.addActionListener(e -> {
             Sequence sequencia = tocador.getSequencia();
             if (sequencia != null) {
-                new TelaEventosMidi(sequencia.getTracks(), tocador.obtemDuracaoTique());
+                new TelaEventosMidi(tocador.obtemEventosMidi(), tocador.obtemDuracaoTique());
             }
         });
+        btnEventos.setEnabled(false);
         getContentPane().add(btnEventos);
 
     }
 
     private void configuraBpm(){
 
-        lbBpm = new JLabel("BPM");
-        lbBpm.setBounds(33, 366, 66, 41);
+        lbBpm = new JLabel();
+        lbBpm.setBounds(12, 366, 192, 41);
 
         btnAumentarBpm = new JButton("+");
-        btnAumentarBpm.setBounds(109, 375, 89, 23);
+        btnAumentarBpm.setBounds(220, 375, 44, 23);
         btnAumentarBpm.addActionListener((ActionEvent e) -> {
             float velocidade = tocador.getVelocidadeAtual() + 0.1f;
             tocador.controlaAndamento(velocidade);
             atualizaInformacoes();
+            mudaLabelVelocidadeReproducao();
         });
         
         btnDiminuirBpm = new JButton("-");
-        btnDiminuirBpm.setBounds(208, 375, 89, 23);
+        btnDiminuirBpm.setBounds(272, 375, 44, 23);
         btnDiminuirBpm.addActionListener((ActionEvent e) -> {
             float velocidade = tocador.getVelocidadeAtual() - 0.1f;
             tocador.controlaAndamento(velocidade);
             atualizaInformacoes();
+            mudaLabelVelocidadeReproducao();
         });
 
         getContentPane().add(btnAumentarBpm);
         getContentPane().add(btnDiminuirBpm);
         getContentPane().add(lbBpm);
-
+        mudaLabelVelocidadeReproducao();
+    }
+    
+    private void mudaLabelVelocidadeReproducao() {
+        String velocidade = new DecimalFormat("#.#x").format(tocador.getVelocidadeAtual());
+        lbBpm.setText("Velocidade de Reprodução: " + velocidade);
     }
 
     private void configuraControleDeFluxo() {
@@ -208,12 +255,13 @@ public class TelaInicial extends JFrame {
     private void configuraVolume() {
         slVolume = new JSlider();
         slVolume.setOrientation(SwingConstants.VERTICAL);
-        slVolume.setBounds(344, 135, 30, 272);
+        slVolume.setBounds(344, 218, 30, 200);
         slVolume.setMaximum(256);
         slVolume.setMinimum(0);
         slVolume.setMajorTickSpacing(10);
         slVolume.setMinorTickSpacing(1);
         slVolume.setValue(256);
+        slVolume.setOpaque(false);
 
         slVolume.addChangeListener((ChangeEvent e) -> {
             float pct = (float)slVolume.getValue() / slVolume.getMaximum();
@@ -249,11 +297,21 @@ public class TelaInicial extends JFrame {
     }
 
     private void configuraSeletorMidi() {
-        tfNomeArquivo = new JTextField();
+        tfNomeArquivo = new JTextField() {
+            protected void paintComponent(Graphics g)
+            {
+                g.setColor( getBackground() );
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
         tfNomeArquivo.setEditable(false);
         tfNomeArquivo.setBounds(10, 11, 262, 20);
         tfNomeArquivo.setText("Arquivo MIDI");
-        btnCarregarArquivo = new JButton("...");
+        tfNomeArquivo.setOpaque(false);
+        tfNomeArquivo.setBackground(new Color(255, 255, 255, 205));
+        tfNomeArquivo.setForeground(Color.black);
+        btnCarregarArquivo = new JButton("Abrir MIDI");
         btnCarregarArquivo.setBounds(285, 10, 89, 21);
         btnCarregarArquivo.setToolTipText("Carregar arquivo MIDI");
         btnCarregarArquivo.addActionListener(e -> {
@@ -267,9 +325,10 @@ public class TelaInicial extends JFrame {
                     btnParar.setEnabled(false);
                     btnPausa.setEnabled(false);
                     btnTocar.setEnabled(true);
-                    atualizaInformacoes();
                     pbProgresso.setMaximum((int)tocador.obtemDuracaoNormalSegundos());
                     atualizaProgresso();
+                    atualizaInformacoes();
+                    btnEventos.setEnabled(true);
                 } else {
                     JOptionPane.showMessageDialog(null, "Falha no arquivo MIDI.");
                     arquivoMidi = null;
@@ -281,11 +340,21 @@ public class TelaInicial extends JFrame {
     }
 
     private void configuraSeletorSoundfont() {
-        tfNomeSoundfont = new JTextField();
+        tfNomeSoundfont = new JTextField() {
+            protected void paintComponent(Graphics g)
+            {
+                g.setColor( getBackground() );
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
         tfNomeSoundfont.setEditable(false);
         tfNomeSoundfont.setBounds(10, 41, 262, 20);
         tfNomeSoundfont.setText("Arquivo SoundFont");
-        btnCarregarSoundfont = new JButton("...");
+        tfNomeSoundfont.setOpaque(false);
+        tfNomeSoundfont.setBackground(new Color(255, 255, 255, 205));
+        tfNomeSoundfont.setForeground(Color.black);
+        btnCarregarSoundfont = new JButton("Abrir SF");
         btnCarregarSoundfont.setBounds(285, 40, 89, 21);
         btnCarregarSoundfont.setToolTipText("Carregar arquivo SoundFont");
         btnCarregarSoundfont.addActionListener(e ->  {
@@ -310,13 +379,7 @@ public class TelaInicial extends JFrame {
         taInformacoes = new JTextArea();
         taInformacoes.setBounds(20, 220, 301, 144);
         taInformacoes.setEditable(false);
-
         getContentPane().add(taInformacoes);
-        ImageIcon imagem = new ImageIcon("icons/fundo.png");
-        JLabel label = new JLabel();
-        label.setBounds(10, 11, 374, 264);
-        label.setIcon(imagem);
-        getContentPane().add(label);
     }
 
     private File abrirArquivo(String caminho, String extensoes[], String descricao) {
@@ -348,7 +411,7 @@ public class TelaInicial extends JFrame {
 
 
 
-    public void atualizaInformacoes() {
+    public final void atualizaInformacoes() {
         StringBuilder sb = new StringBuilder();
         long duracao = (long)tocador.obtemDuracaoNormalSegundos();
         long resolucao = tocador.obtemResolucao();
@@ -357,7 +420,6 @@ public class TelaInicial extends JFrame {
         double duracao_tique = tocador.obtemDuracaoTique();
         int bpm = tocador.obtemAndamento();
         long total_seminimas = tocador.obtemTotalSeminimas();
-        String velocidade = new DecimalFormat("#.#").format(tocador.getVelocidadeAtual());
         
         sb.append("Nome do arquivo: ");
         
@@ -374,7 +436,6 @@ public class TelaInicial extends JFrame {
             sb.append("nenhum arquivo carregado.");
         }
         
-        sb.append("\nVelocidade de reproducao: ").append(velocidade).append("x");
         taInformacoes.setText(sb.toString());
     }
 
@@ -386,7 +447,7 @@ public class TelaInicial extends JFrame {
         }
     }
 
-    public String divideTempo(long segundos) {
+    public final String divideTempo(long segundos) {
         byte horas = (byte) (segundos / 3600);
         segundos -= horas * 3600;
         byte minutos = (byte) (segundos / 60);
@@ -399,5 +460,4 @@ public class TelaInicial extends JFrame {
         btnTocar.setEnabled(!reproduzindo);
         btnParar.setEnabled(true);
     }
-
 }
