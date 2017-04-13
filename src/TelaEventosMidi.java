@@ -1,8 +1,9 @@
 import javax.sound.midi.MidiMessage;
 import javax.swing.*;
 import java.awt.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
+import javax.swing.table.AbstractTableModel;
 
 /**
  * Created by Ricardo on 09/04/2017.
@@ -11,7 +12,7 @@ import java.util.Arrays;
 public class TelaEventosMidi extends JFrame {
     
     private JTable tabelaEventosMidi;
-    private final Dimension tamanhoDaJanela = new Dimension(800, 600);
+    private final Dimension tamanhoDaJanela = new Dimension(1200, 600);
     private final ArrayList<MidiEventoTrilha> eventos;
     private final double durTique;
     private static final int MENSAGEM_NOTE_OFF     = 128;
@@ -21,6 +22,7 @@ public class TelaEventosMidi extends JFrame {
     private static final int MENSAGEM_PROG_CHANGE  = 192;
     private static final int MENSAGEM_CHAN_PRES    = 208;
     private static final int MENSAGEM_PITCH_BEND   = 224;
+    private static final Charset CHARSET_UTF8 = Charset.forName("ISO-8859-1");
 
     public TelaEventosMidi(ArrayList<MidiEventoTrilha> eventos, double durTique) {
         super("Mensagens MIDI");
@@ -44,7 +46,35 @@ public class TelaEventosMidi extends JFrame {
         
         String[] colunasTabela = {"Trilha", "Instante (tiques)", "Instante (segundos)",
                                     "Op. 1", "Op. 2", "Op. 3", "Código", "Mensagem"};
-        tabelaEventosMidi = new JTable(obtemDadosTabela(eventos), colunasTabela);
+        
+        final String[][] dadosTabela = obtemDadosTabela(eventos);
+        
+        tabelaEventosMidi = new JTable(new AbstractTableModel() {
+            @Override
+            public int getRowCount() {
+                return dadosTabela.length;
+            }
+
+            @Override
+            public int getColumnCount() {
+                return colunasTabela.length;
+            }
+
+            @Override
+            public Object getValueAt(int indiceLinha, int indiceColuna) {
+                return dadosTabela[indiceLinha][indiceColuna];
+            }
+            
+            @Override
+            public boolean isCellEditable(int row, int column){  
+                return false;  
+            }
+
+            @Override
+            public String getColumnName(int coluna) {
+                return colunasTabela[coluna];
+            }
+        });
         tabelaEventosMidi.getColumnModel().getColumn(0).setMaxWidth(48);
         tabelaEventosMidi.getColumnModel().getColumn(1).setMaxWidth(100);
         tabelaEventosMidi.getColumnModel().getColumn(1).setMinWidth(100);
@@ -180,8 +210,22 @@ public class TelaEventosMidi extends JFrame {
                 sb.append(60000000/microSegundos).append(" bpm");
                 break;
             case 0x54: sb.append("SMPTE offset"); break;
-            case 0x58: sb.append("Key signature"); break;
-            case 0x59: sb.append("Time signature"); break;
+            case 0x58:
+                if (dados.length >= 3) {
+                    sb.append("Key signature (tonalidade): ");
+                    sb.append(Utilitario.obtemTonalidade(dados[4] == 0, dados[3]));
+                } else {
+                    sb.append("Key signature");
+                }
+                break;
+            case 0x59:
+                if (dados.length >= 3) {
+                    sb.append("Time signature (fórmula de compasso): ");
+                    sb.append(Utilitario.obtemFormulaCompasso(dados[3], dados[4]));
+                } else {
+                    sb.append("Time signature");
+                }
+                break;
             case 0x7F: sb.append("Manufacturer specific"); break;
                 
             default:
@@ -191,7 +235,7 @@ public class TelaEventosMidi extends JFrame {
         
         // Meta mensagens com texto
         if (dados[1] >= 0x01 && dados[1] <= 0x07) {
-            sb.append(new String(Arrays.copyOfRange(dados, 3, 3 + dados[2])));
+            sb.append(new String(dados, 3, (int)(dados[2] & 0xFF), CHARSET_UTF8));
         }
     }
     
