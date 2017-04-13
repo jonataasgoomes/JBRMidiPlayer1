@@ -43,6 +43,9 @@ public class Tocador {
     // Tonalidade do MIDI.
     private String tonalidade = null;
     
+    // Formula de compasso do MIDI.
+    private String formulaCompasso = null;
+    
     // Valores que podem ser modificados pelo usuário e
     // são constantes ao Tocador.
     // Valor do volume (de 0 até 1).
@@ -225,6 +228,10 @@ public class Tocador {
         return tonalidade != null ? tonalidade : "?";
     }
     
+    public String obtemFormulaDeCompasso() {
+        return formulaCompasso != null ? formulaCompasso : "4/4";
+    }
+    
     // Retorna problemas que podem ter ocorrido durante
     // a inicialização da classe.
     public String obtemProblemaAoInstanciar() {
@@ -353,6 +360,10 @@ public class Tocador {
                     } else if (status == 255 && bytes[1] == 0x59 && bytes[2] >= 2) { // Key Signature
                         if (tonalidade == null) {
                             tonalidade = Utilitario.obtemTonalidade(bytes[4] == 0, bytes[3]);
+                        }
+                    } else if (status == 255 && bytes[1] == 0x58 && bytes[2] >= 2) { // Time Signature
+                        if (formulaCompasso == null) {
+                            formulaCompasso = Utilitario.obtemFormulaCompasso(bytes[3], bytes[4]);
                         }
                     }
                 }

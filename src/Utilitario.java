@@ -1,4 +1,5 @@
 public class Utilitario {
+    
     public static String obtemTonalidade(boolean maior, byte tonalidade) {
         switch (tonalidade) {
             case -7: return maior ? "Dób Maior" : "Láb Menor";
@@ -18,5 +19,14 @@ public class Utilitario {
             case  7: return maior ? "Dó# Maior": "Lá# Menor";
         }
         return "?";
+    }
+    
+    public static String obtemFormulaCompasso(byte numerador, byte denominadorPotencia) {
+        
+        if (denominadorPotencia < 0 || numerador < 0 || denominadorPotencia > 30) {
+            return "4/4";
+        }
+        
+        return String.format("%d/%d", numerador, (int)Math.pow(2, denominadorPotencia));
     }
 }

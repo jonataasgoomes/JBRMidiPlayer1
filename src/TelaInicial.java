@@ -426,6 +426,7 @@ public class TelaInicial extends JPanel {
         int bpm = tocador.obtemAndamento();
         long total_seminimas = tocador.obtemTotalSeminimas();
         String tonalidade = tocador.obtemTonalidade();
+        String formulaCompasso = tocador.obtemFormulaDeCompasso();
         sb.append("Nome do arquivo: ");
         
         if (arquivoMidi != null) {
@@ -437,6 +438,7 @@ public class TelaInicial extends JPanel {
                 .append("\nDuração da semínima: ").append(duracao_seminima).append(" s")
                 .append("\nNúmero de semínimas: ").append(total_seminimas)
                 .append("\nTonalidade: ").append(tonalidade)
+                .append("\nFórmula de compasso: ").append(formulaCompasso)
                 .append(String.format("\nAndamento: %d bpm", bpm));
         } else {
             sb.append("nenhum arquivo carregado.");
