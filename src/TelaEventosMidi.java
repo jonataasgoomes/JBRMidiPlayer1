@@ -106,11 +106,11 @@ public class TelaEventosMidi extends JFrame {
                  
             switch (status & 0xF0) {
                 case MENSAGEM_NOTE_OFF:
-                    sb.append("[Note OFF] ").append(converteNota(bytes_mensagem[1]));
+                    sb.append("[Note OFF] - ").append(converteNota(bytes_mensagem[1]));
                     reportarEmQualCanal = true;
                     break;
                 case MENSAGEM_NOTE_ON:
-                    sb.append("[Note ON] ").append(converteNota(bytes_mensagem[1]));
+                    sb.append("[Note ON] - ").append(converteNota(bytes_mensagem[1]));
                     reportarEmQualCanal = true;
                     break;
                 case MENSAGEM_POLY_KEY:
@@ -182,7 +182,12 @@ public class TelaEventosMidi extends JFrame {
             case 11: s_nota = "Si"; break;
             default: s_nota = ""; break;
         }
-        return String.format("%s, %dª oitava", s_nota, (nota_int / 12) - 2);
+        int oitava = (nota_int / 12) - 2;
+        if (oitava <= 0) {
+            oitava -= 1;
+            return String.format("%s, oitava %d", s_nota, oitava);
+        }
+        return String.format("%s, %dª oitava", s_nota, oitava);
     }
     
     private void preencheBuilderMetaMensagem(StringBuilder sb, byte[] dados) {
@@ -326,13 +331,13 @@ public class TelaEventosMidi extends JFrame {
             case 0x64: sb.append("Registered Parameter Number (RPN) - LSB*"); break;
             case 0x65: sb.append("Registered Parameter Number (RPN) - MSB*"); break;
             case 0x78: sb.append("[Channel Mode Message] All Sound Off"); break;
-            case 0x79: sb.append("[Channel Mode Message] Reset All Controllers (See MMA RP-015)"); break;                                
+            case 0x79: sb.append("[Channel Mode Message] Reset All Controllers (See MMA RP-015)"); break;
             case 0x7A: sb.append("[Channel Mode Message] Local Control On/Off"); break;                                
             case 0x7B: sb.append("[Channel Mode Message] All Notes Off"); break;                                
-            case 0x7C: sb.append("[Channel Mode Message] Omni Mode Off (+ all notes off)"); break;                                
-            case 0x7D: sb.append("[Channel Mode Message] Omni Mode On (+ all notes off)"); break;                                
-            case 0x7E: sb.append("[Channel Mode Message] Mono Mode On (+ poly off, + all notes off)"); break;                                
-            case 0x7F: sb.append("[Channel Mode Message] Poly Mode On (+ mono off, +all notes off)"); break;                                
+            case 0x7C: sb.append("[Channel Mode Message] Omni Mode Off (+ all notes off)"); break;
+            case 0x7D: sb.append("[Channel Mode Message] Omni Mode On (+ all notes off)"); break;
+            case 0x7E: sb.append("[Channel Mode Message] Mono Mode On (+ poly off, + all notes off)"); break;
+            case 0x7F: sb.append("[Channel Mode Message] Poly Mode On (+ mono off, +all notes off)"); break;
             default: sb.append("Undefined"); break;
         }
     }
