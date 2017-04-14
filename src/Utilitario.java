@@ -1,22 +1,42 @@
 public class Utilitario {
     
     public static String obtemTonalidade(boolean maior, byte tonalidade) {
-        switch (tonalidade) {
-            case -7: return maior ? "Dób Maior" : "Láb Menor";
-            case -6: return maior ? "Solb Maior": "Mib Menor";
-            case -5: return maior ? "Réb Maior": "Sib Menor";
-            case -4: return maior ? "Láb Maior": "Fá Menor";
-            case -3: return maior ? "Mib Maior": "Dó Menor";
-            case -2: return maior ? "Sib Maior": "Sol Menor";
-            case -1: return maior ? "Fá Maior": "Ré Menor";
-            case  0: return maior ? "Dó Maior": "Lá Menor";
-            case  1: return maior ? "Sol Maior": "Mi Menor";
-            case  2: return maior ? "Ré Maior": "Si Menor";
-            case  3: return maior ? "Lá Maior": "Fá# Menor";
-            case  4: return maior ? "Mi Maior": "Dó# Menor";
-            case  5: return maior ? "Si Maior": "Sol# Menor";
-            case  6: return maior ? "Fá# Maior": "Ré# Menor";
-            case  7: return maior ? "Dó# Maior": "Lá# Menor";
+        if (maior) {
+            switch (tonalidade) {
+                case -7: return "Dób Maior" ;
+                case -6: return "Solb Maior";
+                case -5: return "Réb Maior";
+                case -4: return "Láb Maior";
+                case -3: return "Mib Maior";
+                case -2: return "Sib Maior";
+                case -1: return "Fá Maior";
+                case  0: return "Dó Maior";
+                case  1: return "Sol Maior";
+                case  2: return "Ré Maior";
+                case  3: return "Lá Maior";
+                case  4: return "Mi Maior";
+                case  5: return "Si Maior";
+                case  6: return "Fá# Maior";
+                case  7: return "Dó# Maior";
+            }
+        } else {
+            switch (tonalidade) {
+                case -7: return "Láb Menor";
+                case -6: return "Mib Menor";
+                case -5: return "Sib Menor";
+                case -4: return "Fá Menor";
+                case -3: return "Dó Menor";
+                case -2: return "Sol Menor";
+                case -1: return "Ré Menor";
+                case  0: return "Lá Menor";
+                case  1: return "Mi Menor";
+                case  2: return "Si Menor";
+                case  3: return "Fá# Menor";
+                case  4: return "Dó# Menor";
+                case  5: return "Sol# Menor";
+                case  6: return "Ré# Menor";
+                case  7: return "Lá# Menor";
+            }
         }
         return "?";
     }

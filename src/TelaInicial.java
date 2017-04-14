@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
-import javax.swing.border.BevelBorder;
 import javax.swing.plaf.metal.MetalSliderUI;
 
 /**
@@ -86,7 +85,7 @@ public class TelaInicial extends JPanel {
         }
 
         configuraControleDeFluxo();
-        configuraBoraoEventosMidi();
+        configuraBotaoEventosMidi();
         configuraBpm();
         configuraProgresso();
         configuraVolume();
@@ -130,7 +129,7 @@ public class TelaInicial extends JPanel {
         return this;
     }
 
-    private void configuraBoraoEventosMidi(){
+    private void configuraBotaoEventosMidi(){
 
         btnEventos = new JButton("Eventos MIDI");
         btnEventos.setBounds(10, 470, 112, 23);
@@ -319,7 +318,7 @@ public class TelaInicial extends JPanel {
             String extensoes[] = new String[2];
             extensoes[0] = ".mid";
             extensoes[1] = ".midi";
-            arquivoMidi = abrirArquivo("./midi", extensoes, "Arquivos MIDI (*.mid, *.midi)");
+            arquivoMidi = abrirArquivo(".", extensoes, "Arquivos MIDI (*.mid, *.midi)");
             if (arquivoMidi != null) {
                 if (tocador.carregaArquivo(arquivoMidi)) {
                     tfNomeArquivo.setText("Arquivo MIDI:  " + arquivoMidi.toString());
@@ -361,7 +360,7 @@ public class TelaInicial extends JPanel {
         btnCarregarSoundfont.addActionListener(e ->  {
             String extensoes[] = new String[1];
             extensoes[0] = ".sf2";
-            arquivoSoundfont = abrirArquivo("./soundfonts", extensoes, "Arquivos SoundFont (.sf2)");
+            arquivoSoundfont = abrirArquivo(".", extensoes, "Arquivos SoundFont (.sf2)");
             if (arquivoSoundfont != null) {
                 if (tocador.carregaBancoDeInstrumentos(arquivoSoundfont)) {
                     tfNomeSoundfont.setText(arquivoSoundfont.toString());
